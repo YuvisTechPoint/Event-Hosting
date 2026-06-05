@@ -36,6 +36,18 @@ use HiEvents\Http\Actions\CapacityAssignments\DeleteCapacityAssignmentAction;
 use HiEvents\Http\Actions\CapacityAssignments\GetCapacityAssignmentAction;
 use HiEvents\Http\Actions\CapacityAssignments\GetCapacityAssignmentsAction;
 use HiEvents\Http\Actions\CapacityAssignments\UpdateCapacityAssignmentAction;
+use HiEvents\Http\Actions\Campaign\CreateDripCampaignAction;
+use HiEvents\Http\Actions\Campaign\CreateMessageSegmentAction;
+use HiEvents\Http\Actions\Campaign\DeleteDripCampaignAction;
+use HiEvents\Http\Actions\Campaign\DeleteMessageSegmentAction;
+use HiEvents\Http\Actions\Campaign\GetDripCampaignAction;
+use HiEvents\Http\Actions\Campaign\GetDripCampaignsAction;
+use HiEvents\Http\Actions\Campaign\GetMessageSegmentAction;
+use HiEvents\Http\Actions\Campaign\GetMessageSegmentsAction;
+use HiEvents\Http\Actions\Campaign\PreviewMessageSegmentAction;
+use HiEvents\Http\Actions\Campaign\TriggerDripCampaignTestSendAction;
+use HiEvents\Http\Actions\Campaign\UpdateDripCampaignAction;
+use HiEvents\Http\Actions\Campaign\UpdateMessageSegmentAction;
 use HiEvents\Http\Actions\CheckInLists\CreateCheckInListAction;
 use HiEvents\Http\Actions\CheckInLists\DeleteCheckInListAction;
 use HiEvents\Http\Actions\CheckInLists\GetCheckInListAction;
@@ -59,6 +71,14 @@ use HiEvents\Http\Actions\Events\Images\CreateEventImageAction;
 use HiEvents\Http\Actions\Events\Images\DeleteEventImageAction;
 use HiEvents\Http\Actions\Events\Images\GetEventImagesAction;
 use HiEvents\Http\Actions\Events\Stats\GetEventAnalyticsAction;
+use HiEvents\Http\Actions\Hackathon\CreateHackathonJudgingCriterionAction;
+use HiEvents\Http\Actions\Hackathon\CreateHackathonProjectAction;
+use HiEvents\Http\Actions\Hackathon\CreateHackathonTeamAction;
+use HiEvents\Http\Actions\Hackathon\GetHackathonJudgingCriteriaAction;
+use HiEvents\Http\Actions\Hackathon\GetHackathonProjectsAction;
+use HiEvents\Http\Actions\Hackathon\GetHackathonTeamsAction;
+use HiEvents\Http\Actions\Hackathon\SubmitHackathonProjectAction;
+use HiEvents\Http\Actions\Hackathon\UpsertHackathonScoreAction;
 use HiEvents\Http\Actions\Events\Stats\GetEventStatsAction;
 use HiEvents\Http\Actions\Events\GetBrowseEventsPublicAction;
 use HiEvents\Http\Actions\Events\UpdateEventAction;
@@ -407,11 +427,35 @@ $router->middleware(['auth:api'])->group(
         $router->delete('/events/{event_id}/affiliates/{affiliate_id}', DeleteAffiliateAction::class);
         $router->post('/events/{event_id}/affiliates/export', ExportAffiliatesAction::class);
 
+        // Hackathon engine (Phase 2)
+        $router->get('/events/{event_id}/hackathon/teams', GetHackathonTeamsAction::class);
+        $router->post('/events/{event_id}/hackathon/teams', CreateHackathonTeamAction::class);
+        $router->get('/events/{event_id}/hackathon/projects', GetHackathonProjectsAction::class);
+        $router->post('/events/{event_id}/hackathon/projects', CreateHackathonProjectAction::class);
+        $router->post('/events/{event_id}/hackathon/projects/{project_id}/submit', SubmitHackathonProjectAction::class);
+        $router->get('/events/{event_id}/hackathon/criteria', GetHackathonJudgingCriteriaAction::class);
+        $router->post('/events/{event_id}/hackathon/criteria', CreateHackathonJudgingCriterionAction::class);
+        $router->put('/events/{event_id}/hackathon/scores', UpsertHackathonScoreAction::class);
+
         // Messages
         $router->post('/events/{event_id}/messages', SendMessageAction::class);
         $router->get('/events/{event_id}/messages', GetMessagesAction::class);
         $router->post('/events/{event_id}/messages/{message_id}/cancel', CancelMessageAction::class);
         $router->get('/events/{event_id}/messages/{message_id}/recipients', GetMessageRecipientsAction::class);
+
+        // Drip campaigns & message segments (2.11 MVP)
+        $router->get('/events/{event_id}/drip-campaigns', GetDripCampaignsAction::class);
+        $router->post('/events/{event_id}/drip-campaigns', CreateDripCampaignAction::class);
+        $router->get('/events/{event_id}/drip-campaigns/{campaign_id}', GetDripCampaignAction::class);
+        $router->put('/events/{event_id}/drip-campaigns/{campaign_id}', UpdateDripCampaignAction::class);
+        $router->delete('/events/{event_id}/drip-campaigns/{campaign_id}', DeleteDripCampaignAction::class);
+        $router->post('/events/{event_id}/drip-campaigns/{campaign_id}/test-send', TriggerDripCampaignTestSendAction::class);
+        $router->get('/events/{event_id}/message-segments', GetMessageSegmentsAction::class);
+        $router->post('/events/{event_id}/message-segments', CreateMessageSegmentAction::class);
+        $router->get('/events/{event_id}/message-segments/{segment_id}', GetMessageSegmentAction::class);
+        $router->put('/events/{event_id}/message-segments/{segment_id}', UpdateMessageSegmentAction::class);
+        $router->delete('/events/{event_id}/message-segments/{segment_id}', DeleteMessageSegmentAction::class);
+        $router->get('/events/{event_id}/message-segments/{segment_id}/preview', PreviewMessageSegmentAction::class);
 
         // Event Settings
         $router->get('/events/{event_id}/settings', GetEventSettingsAction::class);

@@ -18,4 +18,6 @@ interface AttendeeRepositoryInterface extends RepositoryInterface
     public function findByEventIdForExport(int $eventId): Collection;
 
     public function getAttendeesByCheckInShortId(string $shortId, QueryParamsDTO $params): Paginator;
+
+    public function findIdsMatchingSegmentRules(int $eventId, array $rules): Collection;
 }

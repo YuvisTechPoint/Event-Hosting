@@ -172,6 +172,7 @@ class ClassGenerator
             Types::FLOAT, Types::DECIMAL => (float)$column->getDefault(),
             Types::GUID => self::NO_TYPE,
             Types::BOOLEAN => (bool)$column->getDefault(),
+            Types::JSON => null,
             default => throw new NoDefaultValueAvailableForGeneratedDoProperty(
                 sprintf('Unable to handle %s', $column->getType()->getName())
             ),

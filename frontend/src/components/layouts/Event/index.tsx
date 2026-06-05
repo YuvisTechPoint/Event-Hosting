@@ -25,6 +25,7 @@ import {
     IconUsersGroup,
     IconWebhook,
     IconListCheck,
+    IconTimelineEvent,
 } from "@tabler/icons-react";
 import {t} from "@lingui/macro";
 import {useGetEvent} from "../../../queries/useGetEvent";
@@ -123,8 +124,10 @@ const EventLayout = () => {
         {link: 'attendees', label: t`Attendees`, icon: IconUsers, badge: eventStats?.total_attendees_registered},
         {link: 'check-in', label: t`Check-In Lists`, icon: IconQrcode},
         {link: 'messages', label: t`Messages`, icon: IconSend},
+        {link: 'drip-campaigns', label: t`Drip Campaigns`, icon: IconTimelineEvent},
         {link: 'sold-out-waitlist', label: t`Waitlist`, icon: IconListCheck},
         {link: 'capacity-assignments', label: t`Capacity Management`, icon: IconUsersGroup},
+        {link: 'hackathon', label: t`Hackathon`, icon: IconUsersGroup},
 
         // 5. INTEGRATIONS
         {label: t`Integrations`},

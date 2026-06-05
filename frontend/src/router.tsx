@@ -429,6 +429,13 @@ export const router: RouteObject[] = [
                 }
             },
             {
+                path: "drip-campaigns",
+                async lazy() {
+                    const DripCampaigns = await import("./components/routes/event/DripCampaigns");
+                    return { Component: DripCampaigns.default };
+                }
+            },
+            {
                 path: "settings",
                 async lazy() {
                     const Settings = await import("./components/routes/event/Settings");
@@ -482,6 +489,13 @@ export const router: RouteObject[] = [
                 async lazy() {
                     const Webhooks = await import("./components/routes/event/Webhooks");
                     return { Component: Webhooks.default };
+                }
+            },
+            {
+                path: "hackathon",
+                async lazy() {
+                    const Hackathon = await import("./components/routes/event/Hackathon");
+                    return { Component: Hackathon.default };
                 }
             }
         ]

@@ -1124,3 +1124,57 @@ export interface WaitlistStats {
     expired: number;
     products: WaitlistProductStats[];
 }
+
+export interface HackathonTeam {
+    id: number;
+    event_id: number;
+    created_by_user_id: number;
+    name: string;
+    slug: string;
+    description?: string | null;
+    invite_code: string;
+    max_members: number;
+    status: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface HackathonProject {
+    id: number;
+    event_id: number;
+    team_id: number;
+    title: string;
+    slug: string;
+    description?: string | null;
+    repository_url?: string | null;
+    demo_url?: string | null;
+    tech_stack?: string[] | null;
+    status: string;
+    submitted_at?: string | null;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface HackathonJudgingCriterion {
+    id: number;
+    event_id: number;
+    judging_round_id?: number | null;
+    name: string;
+    description?: string | null;
+    max_score: number;
+    weight: number;
+    sort_order: number;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface HackathonScore {
+    id: number;
+    criteria_id: number;
+    project_id: number;
+    judge_user_id: number;
+    score: number;
+    feedback?: string | null;
+    created_at?: string;
+    updated_at?: string;
+}

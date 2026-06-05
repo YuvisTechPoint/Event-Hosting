@@ -16,7 +16,16 @@ use HiEvents\Repository\Eloquent\AttendeeCheckInRepository;
 use HiEvents\Repository\Eloquent\AttendeeRepository;
 use HiEvents\Repository\Eloquent\CapacityAssignmentRepository;
 use HiEvents\Repository\Eloquent\CheckInListRepository;
+use HiEvents\Repository\Eloquent\CommunityFollowRepository;
+use HiEvents\Repository\Eloquent\DeveloperProfileRepository;
+use HiEvents\Repository\Eloquent\DripCampaignRepository;
+use HiEvents\Repository\Eloquent\DripCampaignStepRepository;
 use HiEvents\Repository\Eloquent\EmailTemplateRepository;
+use HiEvents\Repository\Eloquent\HackathonJudgingCriterionRepository;
+use HiEvents\Repository\Eloquent\HackathonProjectRepository;
+use HiEvents\Repository\Eloquent\HackathonScoreRepository;
+use HiEvents\Repository\Eloquent\HackathonTeamMemberRepository;
+use HiEvents\Repository\Eloquent\HackathonTeamRepository;
 use HiEvents\Repository\Eloquent\EventDailyStatisticRepository;
 use HiEvents\Repository\Eloquent\EventRepository;
 use HiEvents\Repository\Eloquent\EventSettingsRepository;
@@ -24,6 +33,7 @@ use HiEvents\Repository\Eloquent\EventStatisticRepository;
 use HiEvents\Repository\Eloquent\ImageRepository;
 use HiEvents\Repository\Eloquent\InvoiceRepository;
 use HiEvents\Repository\Eloquent\MessageRepository;
+use HiEvents\Repository\Eloquent\MessageSegmentRepository;
 use HiEvents\Repository\Eloquent\OrderApplicationFeeRepository;
 use HiEvents\Repository\Eloquent\OrderAuditLogRepository;
 use HiEvents\Repository\Eloquent\OrderItemRepository;
@@ -63,7 +73,16 @@ use HiEvents\Repository\Interfaces\AttendeeCheckInRepositoryInterface;
 use HiEvents\Repository\Interfaces\AttendeeRepositoryInterface;
 use HiEvents\Repository\Interfaces\CapacityAssignmentRepositoryInterface;
 use HiEvents\Repository\Interfaces\CheckInListRepositoryInterface;
+use HiEvents\Repository\Interfaces\CommunityFollowRepositoryInterface;
+use HiEvents\Repository\Interfaces\DeveloperProfileRepositoryInterface;
+use HiEvents\Repository\Interfaces\DripCampaignRepositoryInterface;
+use HiEvents\Repository\Interfaces\DripCampaignStepRepositoryInterface;
 use HiEvents\Repository\Interfaces\EmailTemplateRepositoryInterface;
+use HiEvents\Repository\Interfaces\HackathonJudgingCriterionRepositoryInterface;
+use HiEvents\Repository\Interfaces\HackathonProjectRepositoryInterface;
+use HiEvents\Repository\Interfaces\HackathonScoreRepositoryInterface;
+use HiEvents\Repository\Interfaces\HackathonTeamMemberRepositoryInterface;
+use HiEvents\Repository\Interfaces\HackathonTeamRepositoryInterface;
 use HiEvents\Repository\Interfaces\EventDailyStatisticRepositoryInterface;
 use HiEvents\Repository\Interfaces\EventRepositoryInterface;
 use HiEvents\Repository\Interfaces\EventSettingsRepositoryInterface;
@@ -71,6 +90,7 @@ use HiEvents\Repository\Interfaces\EventStatisticRepositoryInterface;
 use HiEvents\Repository\Interfaces\ImageRepositoryInterface;
 use HiEvents\Repository\Interfaces\InvoiceRepositoryInterface;
 use HiEvents\Repository\Interfaces\MessageRepositoryInterface;
+use HiEvents\Repository\Interfaces\MessageSegmentRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrderApplicationFeeRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrderAuditLogRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrderItemRepositoryInterface;
@@ -120,6 +140,7 @@ class RepositoryServiceProvider extends ServiceProvider
         StripePaymentsRepositoryInterface::class => StripePaymentsRepository::class,
         PromoCodeRepositoryInterface::class => PromoCodeRepository::class,
         MessageRepositoryInterface::class => MessageRepository::class,
+        MessageSegmentRepositoryInterface::class => MessageSegmentRepository::class,
         PasswordResetTokenRepositoryInterface::class => PasswordResetTokenRepository::class,
         PasswordResetRepositoryInterface::class => PasswordResetRepository::class,
         TaxAndFeeRepositoryInterface::class => TaxAndFeeRepository::class,
@@ -153,6 +174,15 @@ class RepositoryServiceProvider extends ServiceProvider
         TicketLookupTokenRepositoryInterface::class => TicketLookupTokenRepository::class,
         AccountMessagingTierRepositoryInterface::class => AccountMessagingTierRepository::class,
         WaitlistEntryRepositoryInterface::class => WaitlistEntryRepository::class,
+        DeveloperProfileRepositoryInterface::class => DeveloperProfileRepository::class,
+        CommunityFollowRepositoryInterface::class => CommunityFollowRepository::class,
+        DripCampaignRepositoryInterface::class => DripCampaignRepository::class,
+        DripCampaignStepRepositoryInterface::class => DripCampaignStepRepository::class,
+        HackathonTeamRepositoryInterface::class => HackathonTeamRepository::class,
+        HackathonTeamMemberRepositoryInterface::class => HackathonTeamMemberRepository::class,
+        HackathonProjectRepositoryInterface::class => HackathonProjectRepository::class,
+        HackathonJudgingCriterionRepositoryInterface::class => HackathonJudgingCriterionRepository::class,
+        HackathonScoreRepositoryInterface::class => HackathonScoreRepository::class,
     ];
 
     public function register(): void

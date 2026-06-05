@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Notifications\Notifiable;
@@ -100,5 +101,15 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
     public function canBeImpersonated(): bool
     {
         return $this->currentAccountUser->role !== Role::SUPERADMIN->name;
+    }
+
+    public function developerProfile(): HasOne
+    {
+        return $this->hasOne(DeveloperProfile::class);
+    }
+
+    public function communityFollows(): HasMany
+    {
+        return $this->hasMany(CommunityFollow::class, 'follower_user_id');
     }
 }

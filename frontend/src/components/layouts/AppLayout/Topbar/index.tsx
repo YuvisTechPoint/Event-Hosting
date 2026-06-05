@@ -4,6 +4,7 @@ import {Breadcrumbs, Burger} from '@mantine/core';
 import classes from './Topbar.module.scss';
 import {BreadcrumbItem} from "../types";
 import {GlobalMenu} from "../../../common/GlobalMenu";
+import {ColorSchemeToggle} from "../../../common/ColorSchemeToggle";
 import { getConfig } from "../../../../utilites/config";
 
 interface TopbarProps {
@@ -45,7 +46,7 @@ export const Topbar: React.FC<TopbarProps> = ({
                 {topBarContent}
                 <div className={classes.actionGroup}>
                     {actionGroupContent}
-
+                    <ColorSchemeToggle/>
                     <div className={classes.menu}>
                         <GlobalMenu/>
                     </div>

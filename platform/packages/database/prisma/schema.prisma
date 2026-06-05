@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Stub schema — mirrors Laravel hackathon_* tables for future tRPC/Next.js services.
+// Source of truth: backend/database/migrations/
+
+model HackathonTeam {
+  id               Int      @id @default(autoincrement())
+  eventId          Int      @map("event_id")
+  name             String
+  slug             String
+  description      String?
+  inviteCode       String   @unique @map("invite_code")
+  maxMembers       Int      @default(4) @map("max_members")
+  status           String   @default("OPEN")
+  createdByUserId  Int      @map("created_by_user_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@unique([eventId, slug])
+  @@map("hackathon_teams")
+}
+
+model HackathonProject {
+  id            Int       @id @default(autoincrement())
+  eventId       Int       @map("event_id")
+  teamId        Int       @unique @map("team_id")
+  title         String
+  slug          String
+  status        String    @default("DRAFT")
+  submittedAt   DateTime? @map("submitted_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@unique([eventId, slug])
+  @@map("hackathon_projects")
+}

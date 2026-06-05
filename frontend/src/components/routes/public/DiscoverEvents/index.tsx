@@ -1,7 +1,7 @@
 import {Helmet} from "react-helmet-async";
 import {t} from "@lingui/macro";
 import {useGetBrowseEvents} from "../../../../queries/useGetBrowseEvents.ts";
-import {Container, Grid, Select, Skeleton, Text, TextInput, Title} from "@mantine/core";
+import {Container, Grid, Select, Text, TextInput, Title} from "@mantine/core";
 import {useState} from "react";
 import {Link} from "react-router";
 import {Card} from "../../../common/Card";
@@ -11,6 +11,7 @@ import {eventHomepageUrl} from "../../../../utilites/urlHelper.ts";
 import {IconSearch} from "@tabler/icons-react";
 import {useDebouncedValue} from "@mantine/hooks";
 import classes from "./DiscoverEvents.module.scss";
+import {PageSkeleton} from "../../../common/PageSkeleton";
 
 const CATEGORIES = [
     'MUSIC', 'BUSINESS', 'TECH', 'SPORTS', 'FESTIVAL', 'FOOD_DRINK', 'WORKSHOP', 'OTHER',
@@ -101,7 +102,7 @@ const DiscoverEvents = () => {
                 </Grid>
 
                 {isFetching && events.length === 0 ? (
-                    <Skeleton height={200}/>
+                    <PageSkeleton itemCount={12} showFilters={false}/>
                 ) : events.length === 0 ? (
                     <Card><Text>{t`No events found. Try adjusting your filters.`}</Text></Card>
                 ) : (

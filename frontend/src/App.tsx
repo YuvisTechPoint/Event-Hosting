@@ -1,5 +1,5 @@
 import React, {FC, PropsWithChildren, useCallback, useEffect} from "react";
-import {MantineProvider} from "@mantine/core";
+import {ColorSchemeScript, localStorageColorSchemeManager, MantineProvider} from "@mantine/core";
 import {Notifications} from "@mantine/notifications";
 import {i18n} from "@lingui/core";
 import {I18nProvider} from "@lingui/react";
@@ -22,6 +22,8 @@ import {ThirdPartyScripts} from "./components/common/ThirdPartyScripts";
 import {getConfig} from "./utilites/config.ts";
 import {CookieConsentBanner} from "./components/common/CookieConsentBanner";
 import {isConsentPending, setConsentState, updateGoogleConsentMode} from "./utilites/trackingPixels/consent";
+import {COLOR_SCHEME_STORAGE_KEY, ColorSchemeProvider} from "./contexts/ColorSchemeProvider.tsx";
+import {CommandPaletteProvider} from "./components/common/CommandPalette/CommandPaletteProvider.tsx";
 
 declare global {
     interface Window {
@@ -70,7 +72,13 @@ export const App: FC<
                     display: isLoadedOnBrowser ? "none" : "block",
                 }}
             />
+            <ColorSchemeScript
+                defaultColorScheme="dark"
+                localStorageKey={COLOR_SCHEME_STORAGE_KEY}
+            />
             <MantineProvider
+                defaultColorScheme="dark"
+                colorSchemeManager={localStorageColorSchemeManager({key: COLOR_SCHEME_STORAGE_KEY})}
                 theme={{
                     colors: {
                         primary: generateColors(getConfig("VITE_APP_PRIMARY_COLOR", "#40296C") as string),
@@ -81,30 +89,34 @@ export const App: FC<
                     primaryShade: 8,
                 }}
             >
-                <HelmetProvider context={props.helmetContext}>
-                    <I18nProvider i18n={i18n}>
-                        <QueryClientProvider client={props.queryClient}>
-                            <HydrationBoundary state={props.dehydratedState}>
-                                <StartupChecks/>
-                                <ThirdPartyScripts/>
-                                <ModalsProvider>
-                                    <Helmet>
-                                        <title>{getConfig("VITE_APP_NAME", "Event Hosting")}</title>
-                                        <link rel="icon"
-                                              type="image/svg+xml"
-                                              href={getConfig("VITE_APP_FAVICON", "/manifest-icons/favicon.svg")}
-                                        />
-                                    </Helmet>
-                                    {props.children}
-                                </ModalsProvider>
-                                <Notifications/>
-                                {showGlobalConsentBanner && (
-                                    <CookieConsentBanner onConsent={handleGlobalConsent}/>
-                                )}
-                            </HydrationBoundary>
-                        </QueryClientProvider>
-                    </I18nProvider>
-                </HelmetProvider>
+                <ColorSchemeProvider>
+                    <CommandPaletteProvider>
+                        <HelmetProvider context={props.helmetContext}>
+                            <I18nProvider i18n={i18n}>
+                                <QueryClientProvider client={props.queryClient}>
+                                    <HydrationBoundary state={props.dehydratedState}>
+                                        <StartupChecks/>
+                                        <ThirdPartyScripts/>
+                                        <ModalsProvider>
+                                            <Helmet>
+                                                <title>{getConfig("VITE_APP_NAME", "Event Hosting")}</title>
+                                                <link rel="icon"
+                                                      type="image/svg+xml"
+                                                      href={getConfig("VITE_APP_FAVICON", "/manifest-icons/favicon.svg")}
+                                                />
+                                            </Helmet>
+                                            {props.children}
+                                        </ModalsProvider>
+                                        <Notifications/>
+                                        {showGlobalConsentBanner && (
+                                            <CookieConsentBanner onConsent={handleGlobalConsent}/>
+                                        )}
+                                    </HydrationBoundary>
+                                </QueryClientProvider>
+                            </I18nProvider>
+                        </HelmetProvider>
+                    </CommandPaletteProvider>
+                </ColorSchemeProvider>
             </MantineProvider>
         </React.StrictMode>
     );

@@ -139,4 +139,35 @@ class AttendeeRepository extends BaseRepository implements AttendeeRepositoryInt
             limit: min($params->per_page, 250),
         );
     }
+
+    public function findIdsMatchingSegmentRules(int $eventId, array $rules): Collection
+    {
+        $this->model = $this->model->select('attendees.id')
+            ->join('orders', 'orders.id', '=', 'attendees.order_id')
+            ->where('attendees.event_id', $eventId)
+            ->whereNull('attendees.deleted_at');
+
+        $registrationStatuses = $rules['registration_status'] ?? [
+            OrderStatus::COMPLETED->name,
+            OrderStatus::AWAITING_OFFLINE_PAYMENT->name,
+        ];
+        $this->model = $this->model->whereIn('orders.status', $registrationStatuses);
+
+        if (!empty($rules['ticket_type_ids'])) {
+            $this->model = $this->model->whereIn('attendees.product_id', $rules['ticket_type_ids']);
+        }
+
+        if (!empty($rules['check_in_status'])) {
+            if ($rules['check_in_status'] === 'checked_in') {
+                $this->model = $this->model->whereNotNull('attendees.checked_in_at');
+            } elseif ($rules['check_in_status'] === 'not_checked_in') {
+                $this->model = $this->model->whereNull('attendees.checked_in_at');
+            }
+        }
+
+        $ids = $this->model->pluck('attendees.id');
+        $this->resetModel();
+
+        return $ids;
+    }
 }
