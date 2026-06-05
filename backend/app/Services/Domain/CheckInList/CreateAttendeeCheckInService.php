@@ -20,6 +20,8 @@ use HiEvents\Services\Application\Handlers\CheckInList\Public\DTO\AttendeeAndAct
 use HiEvents\Services\Domain\CheckInList\DTO\CheckInResultDTO;
 use HiEvents\Services\Domain\CheckInList\DTO\CreateAttendeeCheckInsResponseDTO;
 use HiEvents\Services\Domain\Order\MarkOrderAsPaidService;
+use HiEvents\Services\Infrastructure\Broadcasting\AttendeeCheckInLockService;
+use HiEvents\Services\Infrastructure\Broadcasting\EventRealtimeBroadcastService;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Support\Collection;
 use Throwable;
@@ -32,6 +34,8 @@ class CreateAttendeeCheckInService
         private readonly EventSettingsRepositoryInterface   $eventSettingsRepository,
         private readonly ConnectionInterface                $db,
         private readonly MarkOrderAsPaidService             $markOrderAsPaidService,
+        private readonly AttendeeCheckInLockService         $checkInLockService,
+        private readonly EventRealtimeBroadcastService      $eventRealtimeBroadcastService,
     )
     {
     }
@@ -194,17 +198,30 @@ class CreateAttendeeCheckInService
             return new CheckInResultDTO(error: $error);
         }
 
-        return $this->db->transaction(function () use ($attendee, $checkInList, $checkInAction, $checkInUserIpAddress) {
-            $checkIn = $this->createCheckIn($attendee, $checkInList, $checkInUserIpAddress);
+        return $this->checkInLockService->withLock($attendee->getId(), function () use (
+            $attendee,
+            $checkInList,
+            $checkInAction,
+            $checkInUserIpAddress,
+        ) {
+            return $this->db->transaction(function () use ($attendee, $checkInList, $checkInAction, $checkInUserIpAddress) {
+                $checkIn = $this->createCheckIn($attendee, $checkInList, $checkInUserIpAddress);
 
-            if ($checkInAction->value === AttendeeCheckInActionType::CHECK_IN_AND_MARK_ORDER_AS_PAID->value) {
-                $this->markOrderAsPaidService->markOrderAsPaid(
-                    orderId: $attendee->getOrderId(),
-                    eventId: $attendee->getEventId(),
+                if ($checkInAction->value === AttendeeCheckInActionType::CHECK_IN_AND_MARK_ORDER_AS_PAID->value) {
+                    $this->markOrderAsPaidService->markOrderAsPaid(
+                        orderId: $attendee->getOrderId(),
+                        eventId: $attendee->getEventId(),
+                    );
+                }
+
+                $this->eventRealtimeBroadcastService->broadcastAttendeeCheckedIn(
+                    attendee: $attendee,
+                    checkedInBy: $checkInUserIpAddress,
+                    checkedInAt: $checkIn->getCreatedAt() ?? now()->toDateTimeString(),
                 );
-            }
 
-            return new CheckInResultDTO(checkIn: $checkIn);
+                return new CheckInResultDTO(checkIn: $checkIn);
+            });
         });
     }
 

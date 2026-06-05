@@ -87,6 +87,7 @@ class CreateAccountAction extends BaseAuthAction
                 email: $accountData->getEmail(),
                 password: $request->validated('password'),
                 accountId: $accountData->getId(),
+                ipAddress: $request->ip(),
             ));
         } catch (UnauthorizedException $e) {
             return $this->errorResponse(

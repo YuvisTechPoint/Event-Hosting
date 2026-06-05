@@ -22,6 +22,7 @@ readonly class LoginHandler
             email: $loginCredentials->email,
             password: $loginCredentials->password,
             requestedAccountId: $loginCredentials->accountId,
+            ipAddress: $loginCredentials->ipAddress,
         );
 
         if ($loginResponse->accountId !== null) {

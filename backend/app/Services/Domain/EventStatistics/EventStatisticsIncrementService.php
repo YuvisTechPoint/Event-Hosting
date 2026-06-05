@@ -14,6 +14,7 @@ use HiEvents\Repository\Interfaces\EventStatisticRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrderRepositoryInterface;
 use HiEvents\Repository\Interfaces\ProductRepositoryInterface;
 use HiEvents\Repository\Interfaces\PromoCodeRepositoryInterface;
+use HiEvents\Services\Domain\Event\EventAnalyticsFetchService;
 use HiEvents\Services\Infrastructure\Utlitiy\Retry\Retrier;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Carbon;
@@ -31,6 +32,7 @@ class EventStatisticsIncrementService
         private readonly OrderRepositoryInterface               $orderRepository,
         private readonly LoggerInterface                        $logger,
         private readonly Retrier                                $retrier,
+        private readonly EventAnalyticsFetchService             $eventAnalyticsFetchService,
     )
     {
     }
@@ -70,6 +72,8 @@ class EventStatisticsIncrementService
             },
             retryOn: [EventStatisticsVersionMismatchException::class]
         );
+
+        $this->eventAnalyticsFetchService->invalidateCache($order->getEventId());
     }
 
     /**

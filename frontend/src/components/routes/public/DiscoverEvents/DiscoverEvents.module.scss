@@ -1,0 +1,13 @@
+.eventCard {
+  height: 100%;
+}
+
+.eventLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}

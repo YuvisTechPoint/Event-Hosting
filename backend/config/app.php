@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ServiceProvider;
 
 return [
-    'name' => env('APP_NAME', 'Hi.Events'),
+    'name' => env('APP_NAME', 'Event Hosting'),
 
     'reset_password_token_expiry_in_min' => 15,
     'frontend_url' => env('APP_FRONTEND_URL', 'http://localhost'),
@@ -37,7 +37,17 @@ return [
      *
      * Set to null to disable caching
      */
-    'homepage_product_quantities_cache_ttl' => env('APP_HOMEPAGE_TICKET_QUANTITIES_CACHE_TTL', 2),
+    'homepage_product_quantities_cache_ttl' => env('APP_HOMEPAGE_TICKET_QUANTITIES_CACHE_TTL', 30),
+
+    /**
+     * Seconds to cache public event page payloads in Redis. Set to null to disable.
+     */
+    'public_event_cache_ttl' => env('APP_PUBLIC_EVENT_CACHE_TTL', 300),
+
+    /**
+     * Seconds to cache analytics/stats responses in Redis. Set to null to disable.
+     */
+    'analytics_cache_ttl' => env('APP_ANALYTICS_CACHE_TTL', 300),
 
     /**
      * Frontend URL patterns for various actions. It is unlikely you will need to change these
@@ -230,7 +240,7 @@ return [
          */
         \HiEvents\Providers\AppServiceProvider::class,
         \HiEvents\Providers\AuthServiceProvider::class,
-        // App\Providers\BroadcastServiceProvider::class,
+        \HiEvents\Providers\BroadcastServiceProvider::class,
         \HiEvents\Providers\EventServiceProvider::class,
         \HiEvents\Providers\RouteServiceProvider::class,
         \HiEvents\Providers\RepositoryServiceProvider::class

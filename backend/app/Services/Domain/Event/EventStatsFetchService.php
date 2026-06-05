@@ -8,6 +8,8 @@ use HiEvents\Services\Application\Handlers\Event\DTO\EventStatsRequestDTO;
 use HiEvents\Services\Application\Handlers\Event\DTO\EventStatsResponseDTO;
 use HiEvents\Services\Domain\Event\DTO\EventCheckInStatsResponseDTO;
 use HiEvents\Services\Domain\Event\DTO\EventDailyStatsResponseDTO;
+use Illuminate\Config\Repository as Config;
+use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
 
@@ -16,11 +18,34 @@ readonly class EventStatsFetchService
     public function __construct(
         private DatabaseManager $db,
         private EventRepositoryInterface $eventRepository,
+        private Cache $cache,
+        private Config $config,
     )
     {
     }
 
     public function getEventStats(EventStatsRequestDTO $requestData): EventStatsResponseDTO
+    {
+        $cacheTtl = $this->config->get('app.analytics_cache_ttl');
+        $cacheKey = $this->getCacheKey($requestData);
+
+        if ($cacheTtl) {
+            $cached = $this->cache->get($cacheKey);
+            if ($cached instanceof EventStatsResponseDTO) {
+                return $cached;
+            }
+        }
+
+        $stats = $this->fetchEventStats($requestData);
+
+        if ($cacheTtl) {
+            $this->cache->put($cacheKey, $stats, $cacheTtl);
+        }
+
+        return $stats;
+    }
+
+    private function fetchEventStats(EventStatsRequestDTO $requestData): EventStatsResponseDTO
     {
         if ($requestData->start_date === null || $requestData->end_date === null) {
             [$startDate, $endDate] = $this->resolveStatsDateRange(
@@ -33,7 +58,6 @@ readonly class EventStatsFetchService
 
         $eventId = $requestData->event_id;
 
-        // Aggregate total statistics for the event for all time
         $totalsQuery = <<<SQL
         SELECT
             SUM(es.products_sold) AS total_products_sold,
@@ -50,10 +74,8 @@ readonly class EventStatsFetchService
           AND es.deleted_at IS NULL;
     SQL;
 
-        // Execute the totals and comparison queries
         $totalsResult = $this->db->selectOne($totalsQuery, ['eventId' => $eventId]);
 
-        // Use the results to populate the response DTO
         return new EventStatsResponseDTO(
             daily_stats: $this->getDailyEventStats($requestData),
             start_date: $requestData->start_date,
@@ -122,6 +144,11 @@ readonly class EventStatsFetchService
                 total_refunded: $result->total_refunded,
             );
         });
+    }
+
+    private function getCacheKey(EventStatsRequestDTO $requestData): string
+    {
+        return 'analytics.event.' . $requestData->event_id . '.' . ($requestData->date_range_preset ?? 'custom');
     }
 
     private function resolveStatsDateRange(int $eventId, string $preset): array

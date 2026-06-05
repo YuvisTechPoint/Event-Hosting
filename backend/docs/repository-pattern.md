@@ -1,8 +1,8 @@
-# Repository Pattern in Hi.Events
+﻿# Repository Pattern in Event Hosting
 
 ## Overview
 
-Hi.Events uses a clean implementation of the Repository Pattern that provides abstraction between the domain layer and data persistence. All repositories follow interface-based design and return domain objects instead of Eloquent models.
+Event Hosting uses a clean implementation of the Repository Pattern that provides abstraction between the domain layer and data persistence. All repositories follow interface-based design and return domain objects instead of Eloquent models.
 
 ## Architecture
 

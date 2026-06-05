@@ -19,11 +19,35 @@ function getVersion(): string {
     return "unknown";
 }
 
-export default defineConfig({
+export default defineConfig(({isSsrBuild}) => ({
     optimizeDeps: {
         include: ["react-router"]
     },
+    build: {
+        rollupOptions: {
+            output: {
+                // manualChunks with react breaks SSR builds (react is external there)
+                manualChunks: isSsrBuild ? undefined : {
+                    vendor: ["react", "react-dom", "react-router", "react-router-dom"],
+                    mantine: ["@mantine/core", "@mantine/hooks", "@mantine/form", "@mantine/notifications"],
+                    query: ["@tanstack/react-query"],
+                    charts: ["recharts", "@mantine/charts"],
+                },
+            },
+        },
+        chunkSizeWarningLimit: 600,
+    },
     server: {
+        port: 5678,
+        strictPort: true,
+        proxy: {
+            "/api": {
+                target: "http://localhost:1234",
+                changeOrigin: true,
+                secure: false,
+                rewrite: (path) => path.replace(/^\/api/, ""),
+            },
+        },
         hmr: {
             port: 24678,
             protocol: "ws",
@@ -55,4 +79,4 @@ export default defineConfig({
             }
         }
     }
-});
+}));

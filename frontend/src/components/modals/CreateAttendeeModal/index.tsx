@@ -79,7 +79,7 @@ export const CreateAttendeeModal = ({onClose}: GenericModalProps) => {
                 'amount_paid',
                 Number(eventProducts
                     ?.find(product => product.id == form.values.product_id)?.prices
-                    ?.find(productPrice => (productPrice.id as IdParam) = form.values.product_price_id)?.price)
+                    ?.find(productPrice => productPrice.id == form.values.product_price_id)?.price)
             );
         }
     }, [form.values.product_price_id]);

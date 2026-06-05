@@ -22,6 +22,12 @@ export const useFormErrorResponseHandler = () => {
         }
 
         if (error?.response?.status && error.response.status >= 500) {
+            const hasServerMessage = error.response.data?.message || error.response.data?.errors;
+            if (!hasServerMessage) {
+                showError(t`Unable to reach the server. Make sure the backend is running and try again.`);
+                return;
+            }
+
             showError((
                 <>
                     <p>
@@ -42,6 +48,11 @@ export const useFormErrorResponseHandler = () => {
 
         if (error?.response?.status && error.response.status >= 400) {
             showError(errorMessage);
+            return;
+        }
+
+        if (!error?.response && (error?.code === 'ERR_NETWORK' || error?.message?.includes('Network Error'))) {
+            showError(t`Unable to reach the server. Make sure the backend is running and try again.`);
             return;
         }
 

@@ -26,7 +26,7 @@ export const EditAccountConfigurationModal = ({
     configuration,
     currencyCode = 'USD',
 }: EditAccountConfigurationModalProps) => {
-    const updateMutation = useUpdateAccountConfiguration(accountId);
+    const updateMutation = useUpdateAccountConfiguration(accountId, configuration, currencyCode);
     const formErrorHandler = useFormErrorResponseHandler();
 
     const form = useForm<FormValues>({

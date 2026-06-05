@@ -21,6 +21,7 @@ use HiEvents\Repository\Interfaces\OrderRepositoryInterface;
 use HiEvents\Services\Application\Handlers\Order\DTO\RefundOrderDTO;
 use HiEvents\Services\Domain\Order\OrderCancelService;
 use HiEvents\Services\Domain\Payment\Stripe\StripePaymentIntentRefundService;
+use HiEvents\Services\Infrastructure\Broadcasting\EventRealtimeBroadcastService;
 use HiEvents\Services\Infrastructure\Stripe\StripeClientFactory;
 use HiEvents\Values\MoneyValue;
 use Illuminate\Contracts\Mail\Mailer;
@@ -39,6 +40,7 @@ class RefundOrderHandler
         private readonly OrderCancelService               $orderCancelService,
         private readonly DatabaseManager                  $databaseManager,
         private readonly StripeClientFactory              $stripeClientFactory,
+        private readonly EventRealtimeBroadcastService    $eventRealtimeBroadcastService,
     )
     {
     }
@@ -151,6 +153,12 @@ class RefundOrderHandler
         if ($refundOrderDTO->notify_buyer) {
             $this->notifyBuyer($order, $event, $amount);
         }
+
+        $this->eventRealtimeBroadcastService->broadcastRefundRequestedNotification(
+            order: $order,
+            amount: $amount->toFloat(),
+            currency: $order->getCurrency(),
+        );
 
         return $this->markOrderRefundPending($order);
     }

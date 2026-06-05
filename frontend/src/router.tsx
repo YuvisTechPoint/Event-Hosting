@@ -352,6 +352,13 @@ export const router: RouteObject[] = [
                 }
             },
             {
+                path: "analytics",
+                async lazy() {
+                    const EventAnalytics = await import("./components/routes/event/EventAnalytics");
+                    return { Component: EventAnalytics.default };
+                }
+            },
+            {
                 path: "reports",
                 async lazy() {
                     const Reports = await import("./components/routes/event/Reports");
@@ -604,6 +611,14 @@ export const router: RouteObject[] = [
         async lazy() {
             const AttendeeProductAndInformation = await import("./components/routes/product-widget/AttendeeProductAndInformation");
             return { Component: AttendeeProductAndInformation.default };
+        },
+        errorElement: <ErrorPage />
+    },
+    {
+        path: "/discover",
+        async lazy() {
+            const DiscoverEvents = await import("./components/routes/public/DiscoverEvents");
+            return { Component: DiscoverEvents.default };
         },
         errorElement: <ErrorPage />
     },

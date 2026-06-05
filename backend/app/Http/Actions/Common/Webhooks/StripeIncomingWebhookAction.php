@@ -23,10 +23,10 @@ class StripeIncomingWebhookAction extends BaseAction
                     headerSignature: $headerSignature,
                     payload: $payload,
                 ));
-            })->catch(function (Throwable $exception) use ($payload) {
+            })->catch(function (Throwable $exception) use ($headerSignature) {
                 logger()->error(__('Failed to handle incoming Stripe webhook'), [
-                    'exception' => $exception,
-                    'payload' => $payload,
+                    'exception' => $exception->getMessage(),
+                    'has_signature' => !empty($headerSignature),
                 ]);
             });
 

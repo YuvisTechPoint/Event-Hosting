@@ -7,4 +7,4 @@ php artisan queue:work \
     --tries=3 \
     --max-time=3600 \
     --memory=512 \
-    --queue=default,webhooks
+    --queue=default,webhook-queue

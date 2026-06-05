@@ -19,8 +19,11 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Stripe\StripeClient;
-use HiEvents\Services\Infrastructure\Stripe\StripeConfigurationService;
+use HiEvents\Services\Infrastructure\Security\ClamAvVirusScanService;
+use HiEvents\Services\Infrastructure\Security\NoOpVirusScanService;
+use HiEvents\Services\Infrastructure\Security\VirusScanServiceInterface;
 use HiEvents\Services\Infrastructure\Stripe\StripeClientFactory;
+use HiEvents\Services\Infrastructure\Stripe\StripeConfigurationService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
         $this->bindDoctrineConnection();
         $this->bindStripeServices();
         $this->bindCurrencyConversionClient();
+        $this->bindVirusScanService();
     }
 
     /**
@@ -43,6 +47,8 @@ class AppServiceProvider extends ServiceProvider
         $this->disableLazyLoading();
 
         $this->registerMorphMaps();
+
+        $this->validateProductionCors();
     }
 
     private function bindDoctrineConnection(): void
@@ -121,6 +127,32 @@ class AppServiceProvider extends ServiceProvider
     private function disableLazyLoading(): void
     {
         Model::preventLazyLoading(!app()->isProduction());
+    }
+
+    private function bindVirusScanService(): void
+    {
+        $this->app->bind(VirusScanServiceInterface::class, function () {
+            if (config('security.upload.virus_scan_enabled')) {
+                return new ClamAvVirusScanService(
+                    logger: $this->app->make('log'),
+                );
+            }
+
+            return new NoOpVirusScanService();
+        });
+    }
+
+    private function validateProductionCors(): void
+    {
+        if (!$this->app->environment('production')) {
+            return;
+        }
+
+        $origins = config('cors.allowed_origins', []);
+
+        if (in_array('*', $origins, true)) {
+            logger()->warning('CORS is configured to allow all origins in production. Set CORS_ALLOWED_ORIGINS to explicit domains.');
+        }
     }
 
     private function bindCurrencyConversionClient(): void

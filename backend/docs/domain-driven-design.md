@@ -1,8 +1,8 @@
-# Domain-Driven Design in Hi.Events
+﻿# Domain-Driven Design in Event Hosting
 
 ## Overview
 
-Hi.Events implements a clean DDD architecture with clear separation between Application Handlers, Domain Services, and Infrastructure Services. This document explains the patterns, responsibilities, and best practices for each layer.
+Event Hosting implements a clean DDD architecture with clear separation between Application Handlers, Domain Services, and Infrastructure Services. This document explains the patterns, responsibilities, and best practices for each layer.
 
 ## Architecture Layers
 

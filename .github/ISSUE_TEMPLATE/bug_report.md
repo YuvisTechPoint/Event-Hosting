@@ -44,8 +44,8 @@ or
  - Browser [e.g. stock browser, safari]
  - Version [e.g. 22]
 
-**Hi.Events Version and platform**
-Please state the version of Hi.Events you are using and what platform it is hosted on. Local, Docker etc.
+**Event Hosting Version and platform**
+Please state the version of Event Hosting you are using and what platform it is hosted on. Local, Docker etc.
 
 **Additional context**
 Add any other context about the problem here.

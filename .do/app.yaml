@@ -134,7 +134,7 @@ envs:
     value: hello@hi.events
   - key: MAIL_FROM_NAME
     scope: RUN_AND_BUILD_TIME
-    value: Hi.Events
+    value: Event Hosting
 features:
   - buildpack-stack=ubuntu-22
 ingress:

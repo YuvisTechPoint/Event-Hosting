@@ -2,6 +2,7 @@ import {api} from "./client";
 import {
     CheckInStats,
     Event,
+    EventAnalytics,
     EventDuplicatePayload,
     EventStats,
     GenericDataResponse,
@@ -40,6 +41,12 @@ export const eventsClient = {
     getEventStats: async (eventId: IdParam, dateRange?: string) => {
         const params = dateRange ? `?date_range=${dateRange}` : '';
         const response = await api.get<GenericDataResponse<EventStats>>('events/' + eventId + '/stats' + params);
+        return response.data;
+    },
+
+    getEventAnalytics: async (eventId: IdParam, dateRange?: string) => {
+        const params = dateRange ? `?date_range=${dateRange}` : '';
+        const response = await api.get<GenericDataResponse<EventAnalytics>>('events/' + eventId + '/analytics' + params);
         return response.data;
     },
 
@@ -99,6 +106,13 @@ export const eventsClient = {
 }
 
 export const eventsClientPublic = {
+    browse: async (pagination: QueryFilters & { category?: string; sort?: string; start_date_from?: string; start_date_to?: string }) => {
+        const response = await publicApi.get<GenericPaginatedResponse<Event>>(
+            'events' + queryParamsHelper.buildQueryString(pagination)
+        );
+        return response.data;
+    },
+
     all: async () => {
         const response = await publicApi.get<GenericPaginatedResponse<Event>>('events');
         return response.data;

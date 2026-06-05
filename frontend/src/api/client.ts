@@ -1,6 +1,7 @@
 import axios from "axios";
 import {isSsr} from "../utilites/helpers.ts";
 import {getConfig} from "../utilites/config.ts";
+import {setAuthToken} from "../utilites/apiClient.ts";
 
 const BASE_URL = isSsr()
     ? getConfig('VITE_API_URL_SERVER')
@@ -36,7 +37,14 @@ export const api = axios.create({
 });
 
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        const token = response.headers['x-auth-token'];
+        if (token) {
+            setAuthToken(token);
+        }
+
+        return response;
+    },
     (error) => {
         const { status } = error.response;
         const currentPath = window?.location.pathname;

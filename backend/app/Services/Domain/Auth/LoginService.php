@@ -11,6 +11,8 @@ use HiEvents\Exceptions\UnauthorizedException;
 use HiEvents\Repository\Eloquent\Value\Relationship;
 use HiEvents\Repository\Interfaces\AccountUserRepositoryInterface;
 use HiEvents\Services\Domain\Auth\DTO\LoginResponse;
+use HiEvents\Services\Infrastructure\Security\AuthSecurityService;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Support\Collection;
 use PHPOpenSourceSaver\JWTAuth\JWTAuth;
 use Psr\Log\LoggerInterface;
@@ -21,15 +23,21 @@ readonly class LoginService
         private JWTAuth                        $jwtAuth,
         private LoggerInterface                $logger,
         private AccountUserRepositoryInterface $accountUserRepository,
+        private AuthSecurityService            $authSecurityService,
     )
     {
     }
 
     /**
      * @throws UnauthorizedException
+     * @throws ThrottleRequestsException
      */
-    public function authenticate(string $email, string $password, ?int $requestedAccountId): LoginResponse
+    public function authenticate(string $email, string $password, ?int $requestedAccountId, ?string $ipAddress = null): LoginResponse
     {
+        $identifier = strtolower($email) . '|' . ($ipAddress ?? 'unknown');
+
+        $this->authSecurityService->assertNotLockedOut('login', $identifier, $ipAddress ?? 'unknown');
+
         // todo - refactor this so we don't have to call the jwtAuth twice
         $token = $this->jwtAuth->attempt([
             'email' => strtolower($email),
@@ -37,8 +45,12 @@ readonly class LoginService
         ]);
 
         if (!$token) {
+            $this->authSecurityService->recordFailedAttempt('login', $identifier, $ipAddress ?? 'unknown');
+
             throw new UnauthorizedException(__('Username or Password are incorrect'));
         }
+
+        $this->authSecurityService->recordSuccessfulAttempt('login', $identifier);
 
         /** @var UserDomainObject $user */
         $user = UserDomainObject::hydrateFromModel($this->jwtAuth->user());

@@ -15,6 +15,7 @@ use HiEvents\Repository\Eloquent\Value\Relationship;
 use HiEvents\Repository\Interfaces\AttendeeRepositoryInterface;
 use HiEvents\Repository\Interfaces\EventRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrderRepositoryInterface;
+use HiEvents\Services\Domain\Event\EventTicketAvailabilityCacheService;
 use HiEvents\Services\Domain\Product\ProductQuantityUpdateService;
 use HiEvents\Services\Infrastructure\DomainEvents\DomainEventDispatcherService;
 use HiEvents\Services\Infrastructure\DomainEvents\Enums\DomainEventType;
@@ -35,6 +36,7 @@ class OrderCancelService
         private readonly ProductQuantityUpdateService        $productQuantityService,
         private readonly DomainEventDispatcherService        $domainEventDispatcherService,
         private readonly EventStatisticsCancellationService  $eventStatisticsCancellationService,
+        private readonly EventTicketAvailabilityCacheService $ticketAvailabilityCacheService,
     )
     {
     }
@@ -109,6 +111,8 @@ class OrderCancelService
         foreach ($productIdCountMap as $productPriceId => $count) {
             $this->productQuantityService->decreaseQuantitySold($productPriceId, $count);
         }
+
+        $this->ticketAvailabilityCacheService->invalidate($order->getEventId());
     }
 
     private function updateOrderStatus(OrderDomainObject $order): void

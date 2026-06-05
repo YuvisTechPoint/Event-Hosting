@@ -19,6 +19,7 @@ use HiEvents\Repository\Interfaces\OrderRepositoryInterface;
 use HiEvents\Repository\Interfaces\ProductRepositoryInterface;
 use HiEvents\Services\Application\Handlers\Message\DTO\SendMessageDTO;
 use HiEvents\Services\Domain\Message\MessagingEligibilityService;
+use HiEvents\Services\Infrastructure\Broadcasting\EventRealtimeBroadcastService;
 use HiEvents\Services\Infrastructure\HtmlPurifier\HtmlPurifierService;
 use Illuminate\Config\Repository;
 use Illuminate\Support\Collection;
@@ -36,6 +37,7 @@ class SendMessageHandler
         private readonly HtmlPurifierService           $purifier,
         private readonly Repository                    $config,
         private readonly MessagingEligibilityService   $eligibilityService,
+        private readonly EventRealtimeBroadcastService $eventRealtimeBroadcastService,
     )
     {
     }
@@ -142,6 +144,12 @@ class SendMessageHandler
             ]);
 
             SendMessagesJob::dispatch($updatedData);
+
+            $this->eventRealtimeBroadcastService->broadcastMessageNotification(
+                eventId: $messageData->event_id,
+                subject: $messageData->subject,
+                messageId: $message->getId(),
+            );
         }
 
         return $message;

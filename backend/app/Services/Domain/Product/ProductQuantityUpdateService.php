@@ -9,6 +9,7 @@ use HiEvents\DomainObjects\OrderItemDomainObject;
 use HiEvents\Repository\Interfaces\CapacityAssignmentRepositoryInterface;
 use HiEvents\Repository\Interfaces\ProductPriceRepositoryInterface;
 use HiEvents\Repository\Interfaces\ProductRepositoryInterface;
+use HiEvents\Services\Domain\Event\EventTicketAvailabilityCacheService;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,7 @@ class ProductQuantityUpdateService
         private readonly ProductRepositoryInterface            $productRepository,
         private readonly CapacityAssignmentRepositoryInterface $capacityAssignmentRepository,
         private readonly DatabaseManager                       $databaseManager,
+        private readonly EventTicketAvailabilityCacheService   $ticketAvailabilityCacheService,
     )
     {
     }
@@ -71,6 +73,8 @@ class ProductQuantityUpdateService
 
             $this->updateProductQuantities($order);
         });
+
+        $this->ticketAvailabilityCacheService->invalidate($order->getEventId());
     }
 
     /**

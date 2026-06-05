@@ -9,6 +9,7 @@ import classes from "./Register.module.scss";
 import {getClientLocale} from "../../../../locales.ts";
 import {useEffect} from "react";
 import {getUserCurrency} from "../../../../utilites/currency.ts";
+import {resolveTimezone} from "../../../../utilites/timezone.ts";
 import {getConfig} from "../../../../utilites/config.ts";
 import {captureUtmData, getStoredUtmData, clearStoredUtmData} from "../../../../utilites/utm.ts";
 
@@ -24,9 +25,7 @@ export const Register = () => {
             email: '',
             password: '',
             password_confirmation: '',
-            timezone: typeof window !== 'undefined'
-                ? Intl.DateTimeFormat().resolvedOptions().timeZone
-                : 'UTC',
+            timezone: resolveTimezone(),
             locale: getClientLocale(),
             invite_token: '',
             currency_code: getUserCurrency(),
@@ -130,7 +129,7 @@ export const Register = () => {
                     <Checkbox
                         mb="md"
                         {...form.getInputProps('marketing_opt_in', {type: 'checkbox'})}
-                        label={<Trans>Receive product updates from {getConfig("VITE_APP_NAME", "Hi.Events")}.</Trans>}
+                        label={<Trans>Receive product updates from {getConfig("VITE_APP_NAME", "Event Hosting")}.</Trans>}
                     />
 
                     <Button color="secondary.5" type="submit" fullWidth disabled={mutate.isPending}>

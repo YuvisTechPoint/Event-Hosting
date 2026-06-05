@@ -23,7 +23,12 @@ export type ConfigKeys =
     | 'VITE_I_HAVE_PURCHASED_A_LICENCE'
     | 'VITE_DEFAULT_IMAGE_URL'
     | 'VITE_COOKIE_CONSENT_ENABLED'
-    | 'VITE_COOKIE_CONSENT_TEXT';
+    | 'VITE_COOKIE_CONSENT_TEXT'
+    | 'VITE_PUSHER_APP_KEY'
+    | 'VITE_PUSHER_APP_CLUSTER'
+    | 'VITE_PUSHER_HOST'
+    | 'VITE_PUSHER_PORT'
+    | 'VITE_PUSHER_SCHEME';
 
 export enum StripePlatform {
     Canada = 'ca',
@@ -373,6 +378,33 @@ export interface EventStats {
     total_fees: number;
     total_views: number;
     total_refunded: number;
+}
+
+export interface EventAnalytics {
+    revenue_over_time: { date: string; revenue: number }[];
+    tickets_by_type: { name: string; sold: number; revenue: number }[];
+    check_in_rate_over_time: { date: string; checked_in: number; total: number; rate: number }[];
+    geographic_distribution: { label: string; count: number }[];
+    conversion_funnel: {
+        page_views: number;
+        started_checkout: number;
+        completed: number;
+        conversion_rate: number;
+    };
+    hourly_sales: { hour: number; sales: number; revenue: number }[];
+    refund_summary: {
+        refund_count: number;
+        refunded_amount: number;
+        refund_rate: number;
+        gross_revenue: number;
+    };
+    repeat_attendees: {
+        total_unique_attendees: number;
+        repeat_attendees: number;
+        repeat_percentage: number;
+    };
+    start_date: string;
+    end_date: string;
 }
 
 export interface OrganizerStats {

@@ -8,6 +8,8 @@ use HiEvents\Jobs\Question\ExportAnswersJob;
 use HiEvents\Services\Infrastructure\Jobs\JobPollingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Throwable;
 
 class ExportQuestionAnswersAction extends BaseAction
@@ -19,22 +21,35 @@ class ExportQuestionAnswersAction extends BaseAction
     /**
      * @throws Throwable
      */
-    public function __invoke(Request $request, int $eventId): JsonResponse
+    public function __invoke(Request $request, int $eventId): JsonResponse|BinaryFileResponse
     {
         $this->isActionAuthorized($eventId, EventDomainObject::class);
 
         if ($jobUuid = $request->get('job_uuid')) {
-            return $this->handleExistingJob($jobUuid, $eventId);
+            return $this->handleExistingJob($request, $jobUuid, $eventId);
         }
 
         return $this->startNewExportJob($eventId);
     }
 
-    private function handleExistingJob(string $jobUuid, int $eventId): JsonResponse
+    private function handleExistingJob(Request $request, string $jobUuid, int $eventId): JsonResponse|BinaryFileResponse
     {
         $filePath = "event_$eventId/answers-$jobUuid.xlsx";
+        $localDownloadUrl = $request->fullUrlWithQuery([
+            'job_uuid' => $jobUuid,
+            'download' => 1,
+        ]);
 
-        $jobStatus = $this->jobPollingService->checkJobStatus($jobUuid, $filePath);
+        $jobStatus = $this->jobPollingService->checkJobStatus($jobUuid, $filePath, $localDownloadUrl);
+
+        if ($request->boolean('download') && $jobStatus->status->name === 'FINISHED' && $jobStatus->downloadUrl) {
+            $diskName = config('filesystems.private');
+            $disk = Storage::disk($diskName);
+
+            if ($disk->exists($filePath)) {
+                return response()->download($disk->path($filePath), "answers-$jobUuid.xlsx");
+            }
+        }
 
         return $this->jsonResponse([
             'message' => $jobStatus->message,

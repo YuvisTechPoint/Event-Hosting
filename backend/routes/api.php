@@ -24,6 +24,7 @@ use HiEvents\Http\Actions\Attendees\PartialEditAttendeeAction;
 use HiEvents\Http\Actions\Attendees\ResendAttendeeTicketAction;
 use HiEvents\Http\Actions\Auth\AcceptInvitationAction;
 use HiEvents\Http\Actions\Auth\ForgotPasswordAction;
+use HiEvents\Http\Actions\Auth\GetCsrfCookieAction;
 use HiEvents\Http\Actions\Auth\GetUserInvitationAction;
 use HiEvents\Http\Actions\Auth\LoginAction;
 use HiEvents\Http\Actions\Auth\LogoutAction;
@@ -46,6 +47,7 @@ use HiEvents\Http\Actions\CheckInLists\Public\GetCheckInListAttendeesPublicActio
 use HiEvents\Http\Actions\CheckInLists\Public\GetCheckInListPublicAction;
 use HiEvents\Http\Actions\CheckInLists\UpdateCheckInListAction;
 use HiEvents\Http\Actions\Common\GetColorThemesAction;
+use HiEvents\Http\Actions\Common\HealthAction;
 use HiEvents\Http\Actions\Common\Webhooks\StripeIncomingWebhookAction;
 use HiEvents\Http\Actions\Events\CreateEventAction;
 use HiEvents\Http\Actions\Events\DuplicateEventAction;
@@ -56,7 +58,9 @@ use HiEvents\Http\Actions\Events\GetOrganizerEventsPublicAction;
 use HiEvents\Http\Actions\Events\Images\CreateEventImageAction;
 use HiEvents\Http\Actions\Events\Images\DeleteEventImageAction;
 use HiEvents\Http\Actions\Events\Images\GetEventImagesAction;
+use HiEvents\Http\Actions\Events\Stats\GetEventAnalyticsAction;
 use HiEvents\Http\Actions\Events\Stats\GetEventStatsAction;
+use HiEvents\Http\Actions\Events\GetBrowseEventsPublicAction;
 use HiEvents\Http\Actions\Events\UpdateEventAction;
 use HiEvents\Http\Actions\Events\DeleteEventAction;
 use HiEvents\Http\Actions\Events\GetEventDeletionStatusAction;
@@ -220,13 +224,17 @@ use Illuminate\Routing\Router;
 /** @var Router|Router $router */
 $router = app()->get('router');
 
+$router->get('/health', HealthAction::class);
+
 $router->prefix('/auth')->group(
     function (Router $router): void {
+        $router->get('/csrf-cookie', GetCsrfCookieAction::class)->name('auth.csrf-cookie');
+
         // Auth
-        $router->post('/login', LoginAction::class)->name('auth.login');
+        $router->post('/login', LoginAction::class)->name('auth.login')->middleware('throttle:auth-login');
         $router->post('/logout', LogoutAction::class)->name('auth.logout');
-        $router->post('/register', CreateAccountAction::class)->name('auth.register');
-        $router->post('/forgot-password', ForgotPasswordAction::class)->name('auth.forgot-password');
+        $router->post('/register', CreateAccountAction::class)->name('auth.register')->middleware('throttle:auth-register');
+        $router->post('/forgot-password', ForgotPasswordAction::class)->name('auth.forgot-password')->middleware('throttle:auth-password-reset');
 
         // Invitations
         $router->get('/invitation/{invite_token}', GetUserInvitationAction::class)->name('auth.invitation');
@@ -234,7 +242,7 @@ $router->prefix('/auth')->group(
 
         // Reset Passwords
         $router->get('/reset-password/{reset_token}', ValidateResetPasswordTokenAction::class)->name('auth.validate-reset-password-token');
-        $router->post('/reset-password/{reset_token}', ResetPasswordAction::class)->name('auth.reset-password');
+        $router->post('/reset-password/{reset_token}', ResetPasswordAction::class)->name('auth.reset-password')->middleware('throttle:auth-password-reset');
     }
 );
 
@@ -337,6 +345,7 @@ $router->middleware(['auth:api'])->group(
 
         // Stats
         $router->get('/events/{event_id}/stats', GetEventStatsAction::class);
+        $router->get('/events/{event_id}/analytics', GetEventAnalyticsAction::class);
 
         // Email Templates - Event level
         $router->get('/events/{eventId}/email-templates', GetEventEmailTemplatesAction::class);
@@ -490,22 +499,26 @@ $router->prefix('/admin')->middleware(['auth:api'])->group(
 /**
  * Public routes
  */
-$router->prefix('/public')->group(
+$router->prefix('/public')->middleware(['throttle:public-read', 'etag'])->group(
     function (Router $router): void {
         // Events
+        $router->get('/events', GetBrowseEventsPublicAction::class);
         $router->get('/events/{event_id}', GetEventPublicAction::class);
 
         // Organizers
         $router->get('/organizers/{organizer_id}', GetPublicOrganizerAction::class);
         $router->get('/organizers/{organizer_id}/events', GetOrganizerEventsPublicAction::class);
-        $router->post('/organizers/{organizer_id}/contact', SendOrganizerContactMessagePublicAction::class);
+        $router->post('/organizers/{organizer_id}/contact', SendOrganizerContactMessagePublicAction::class)
+            ->middleware('throttle:10,1');
 
         // Products
         $router->get('/events/{event_id}/products', GetEventPublicAction::class);
 
         // Orders
-        $router->post('/events/{event_id}/order', CreateOrderActionPublic::class);
-        $router->put('/events/{event_id}/order/{order_short_id}', CompleteOrderActionPublic::class);
+        $router->post('/events/{event_id}/order', CreateOrderActionPublic::class)
+            ->middleware('throttle:public-order');
+        $router->put('/events/{event_id}/order/{order_short_id}', CompleteOrderActionPublic::class)
+            ->middleware('throttle:public-order');
         $router->get('/events/{event_id}/order/{order_short_id}', GetOrderActionPublic::class);
         $router->post('/events/{event_id}/order/{order_short_id}/abandon', AbandonOrderActionPublic::class);
         $router->post('/events/{event_id}/order/{order_short_id}/await-offline-payment', TransitionOrderToOfflinePaymentPublicAction::class);

@@ -37,6 +37,35 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perHour(20)->by($request->route('order_short_id') ?? $request->ip());
         });
 
+        RateLimiter::for('public-read', function (Request $request) {
+            return Limit::perMinute(120)->by($request->ip());
+        });
+
+        RateLimiter::for('public-order', function (Request $request) {
+            return Limit::perMinute(30)->by($request->ip());
+        });
+
+        RateLimiter::for('auth-login', function (Request $request) {
+            return Limit::perMinutes(
+                config('security.auth.login_decay_minutes', 15),
+                config('security.auth.login_max_attempts', 5),
+            )->by($request->ip());
+        });
+
+        RateLimiter::for('auth-register', function (Request $request) {
+            return Limit::perMinutes(
+                config('security.auth.register_decay_minutes', 60),
+                config('security.auth.register_max_attempts', 3),
+            )->by($request->ip());
+        });
+
+        RateLimiter::for('auth-password-reset', function (Request $request) {
+            return Limit::perMinutes(
+                config('security.auth.password_reset_decay_minutes', 60),
+                config('security.auth.password_reset_max_attempts', 3),
+            )->by($request->ip());
+        });
+
         $this->routes(function () {
             Route::middleware('api')
                 ->group(base_path('routes/api.php'));

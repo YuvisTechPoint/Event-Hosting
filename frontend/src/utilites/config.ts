@@ -24,6 +24,11 @@ export const clientBuildEnv: { [K in ConfigKeys]: string } = {
     'VITE_API_URL_CLIENT': import.meta.env.VITE_API_URL_CLIENT,
     'VITE_COOKIE_CONSENT_ENABLED': import.meta.env.VITE_COOKIE_CONSENT_ENABLED,
     'VITE_COOKIE_CONSENT_TEXT': import.meta.env.VITE_COOKIE_CONSENT_TEXT,
+    'VITE_PUSHER_APP_KEY': import.meta.env.VITE_PUSHER_APP_KEY,
+    'VITE_PUSHER_APP_CLUSTER': import.meta.env.VITE_PUSHER_APP_CLUSTER,
+    'VITE_PUSHER_HOST': import.meta.env.VITE_PUSHER_HOST,
+    'VITE_PUSHER_PORT': import.meta.env.VITE_PUSHER_PORT,
+    'VITE_PUSHER_SCHEME': import.meta.env.VITE_PUSHER_SCHEME,
 }
 
 export const getConfig = (key: ConfigKeys, fallback?: string): string | undefined => {

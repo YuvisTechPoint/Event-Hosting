@@ -78,7 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <img
                         style={{maxWidth: '160px', margin: "10px auto"}}
                         src={getConfig("VITE_APP_LOGO_LIGHT", "/logos/hi-events-text-dark.svg")}
-                        alt={t`${getConfig("VITE_APP_NAME", "Hi.Events")} logo`}
+                        alt={t`${getConfig("VITE_APP_NAME", "Event Hosting")} logo`}
                     />
                 </NavLink>
             </div>

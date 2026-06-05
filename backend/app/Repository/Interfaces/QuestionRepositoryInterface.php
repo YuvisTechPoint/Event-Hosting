@@ -3,6 +3,8 @@
 namespace HiEvents\Repository\Interfaces;
 
 use HiEvents\DomainObjects\QuestionDomainObject;
+use HiEvents\Http\DTO\QueryParamsDTO;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 /**
@@ -10,7 +12,7 @@ use Illuminate\Support\Collection;
  */
 interface QuestionRepositoryInterface extends RepositoryInterface
 {
-    public function findByEventId(int $eventId): Collection;
+    public function findByEventId(int $eventId, ?QueryParamsDTO $params = null, array $additionalWhere = []): Collection|LengthAwarePaginator;
 
     public function create(array $attributes, array $productIds = []): QuestionDomainObject;
 

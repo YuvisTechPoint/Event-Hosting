@@ -7,15 +7,19 @@ import classes from "../../layouts/CheckIn/CheckIn.module.scss";
 interface CheckInInfoModalProps {
     isOpen: boolean;
     checkInList: CheckInList | undefined;
+    liveCheckedInCount?: number | null;
     onClose: () => void;
 }
 
 export const CheckInInfoModal = ({
     isOpen,
     checkInList,
+    liveCheckedInCount,
     onClose
 }: CheckInInfoModalProps) => {
     if (!checkInList) return null;
+
+    const checkedInCount = liveCheckedInCount ?? checkInList.checked_in_attendees;
     
     return (
         <Modal.Root
@@ -38,12 +42,12 @@ export const CheckInInfoModal = ({
                         <>
                             <h4>
                                 <Trans>
-                                    {`${checkInList.checked_in_attendees}/${checkInList.total_attendees}`} checked in
+                                    {`${checkedInCount}/${checkInList.total_attendees}`} checked in
                                 </Trans>
                             </h4>
 
                             <Progress
-                                value={checkInList.checked_in_attendees / checkInList.total_attendees * 100}
+                                value={checkedInCount / checkInList.total_attendees * 100}
                                 color={'teal'}
                                 size={'xl'}
                                 className={classes.progressBar}

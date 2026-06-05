@@ -1,6 +1,6 @@
-# Hi.Events Backend Documentation
+﻿# Event Hosting Backend Documentation
 
-Welcome to the Hi.Events backend documentation. This directory contains comprehensive guides on the architecture, patterns, and best practices used throughout the backend codebase.
+Welcome to the Event Hosting backend documentation. This directory contains comprehensive guides on the architecture, patterns, and best practices used throughout the backend codebase.
 
 **🚨 These docs are AI generated and are not 100% accurate. Always verify anything important by looking at the actual code.**
 
@@ -22,7 +22,7 @@ Welcome to the Hi.Events backend documentation. This directory contains comprehe
 ---
 
 ### [Domain-Driven Design](domain-driven-design.md)
-Deep dive into the DDD patterns used in Hi.Events.
+Deep dive into the DDD patterns used in Event Hosting.
 
 **Contents**:
 - Application Layer (Handlers)

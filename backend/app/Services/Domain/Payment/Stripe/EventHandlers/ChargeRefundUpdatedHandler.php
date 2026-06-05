@@ -11,6 +11,7 @@ use HiEvents\Repository\Interfaces\OrderRefundRepositoryInterface;
 use HiEvents\Repository\Interfaces\OrderRepositoryInterface;
 use HiEvents\Repository\Interfaces\StripePaymentsRepositoryInterface;
 use HiEvents\Services\Domain\EventStatistics\EventStatisticsRefundService;
+use HiEvents\Services\Infrastructure\Broadcasting\EventRealtimeBroadcastService;
 use HiEvents\Services\Infrastructure\DomainEvents\DomainEventDispatcherService;
 use HiEvents\Services\Infrastructure\DomainEvents\Enums\DomainEventType;
 use HiEvents\Services\Infrastructure\DomainEvents\Events\OrderEvent;
@@ -30,6 +31,7 @@ class ChargeRefundUpdatedHandler
         private readonly EventStatisticsRefundService      $eventStatisticsRefundService,
         private readonly OrderRefundRepositoryInterface    $orderRefundRepository,
         private readonly DomainEventDispatcherService      $domainEventDispatcherService,
+        private readonly EventRealtimeBroadcastService     $eventRealtimeBroadcastService,
     )
     {
     }
@@ -88,6 +90,12 @@ class ChargeRefundUpdatedHandler
                     type: DomainEventType::ORDER_REFUNDED,
                     orderId: $order->getId()
                 ),
+            );
+
+            $this->eventRealtimeBroadcastService->broadcastRefundNotification(
+                order: $order,
+                amount: $refundedAmount,
+                currency: $order->getCurrency(),
             );
         });
     }

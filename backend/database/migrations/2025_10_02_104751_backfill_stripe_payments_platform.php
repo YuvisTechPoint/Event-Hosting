@@ -10,7 +10,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Backfill existing stripe payments with 'ca' platform for Hi.Events cloud installations
+        // Backfill existing stripe payments with 'ca' platform for Event Hosting cloud installations
         // All existing payments on the cloud platform were processed using the Canada Stripe platform
         if (config('app.is_hi_events')) {
             DB::table('stripe_payments')
@@ -24,7 +24,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Revert the backfill for Hi.Events cloud installations
+        // Revert the backfill for Event Hosting cloud installations
         if (config('app.is_hi_events')) {
             DB::table('stripe_payments')
                 ->where('stripe_platform', 'ca')

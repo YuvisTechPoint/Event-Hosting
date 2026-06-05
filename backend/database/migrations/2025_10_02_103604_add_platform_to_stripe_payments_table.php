@@ -18,7 +18,7 @@ return new class extends Migration
             $table->index('stripe_platform');
         });
 
-        // Backfill existing stripe payments with 'ca' platform for Hi.Events cloud installations
+        // Backfill existing stripe payments with 'ca' platform for Event Hosting cloud installations
         if (config('app.is_hi_events')) {
             DB::table('stripe_payments')
                 ->whereNull('stripe_platform')

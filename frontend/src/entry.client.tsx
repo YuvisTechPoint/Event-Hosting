@@ -32,6 +32,18 @@ async function initClientApp() {
 
     const browserRouter = createBrowserRouter(router);
 
+    if ('serviceWorker' in navigator && import.meta.env.PROD) {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+
+    const prefetchRoutes = [
+        () => import('./components/routes/auth/Login'),
+        () => import('./components/routes/events/Dashboard'),
+    ];
+    prefetchRoutes.forEach((load) => {
+        load().catch(() => {});
+    });
+
     hydrateRoot(
         document.getElementById("app") as HTMLElement,
         <App queryClient={queryClient} locale={rawLocale} dehydratedState={dehydratedState}>

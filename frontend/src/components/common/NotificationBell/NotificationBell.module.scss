@@ -1,0 +1,19 @@
+.notificationBell {
+  display: flex;
+  align-items: center;
+}
+
+.unread {
+  background-color: rgba(64, 41, 108, 0.06);
+}
+
+.item {
+  white-space: normal;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}

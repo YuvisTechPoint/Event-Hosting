@@ -13,6 +13,7 @@ interface AttendeeListProps {
     allowOrdersAwaitingOfflinePaymentToCheckIn: boolean;
     onCheckInToggle: (attendee: Attendee) => void;
     onClickSound?: () => void;
+    checkedInHighlightIds?: Set<string>;
 }
 
 export const AttendeeList = ({
@@ -23,7 +24,8 @@ export const AttendeeList = ({
                                  isDeletePending,
                                  allowOrdersAwaitingOfflinePaymentToCheckIn,
                                  onCheckInToggle,
-                                 onClickSound
+                                 onClickSound,
+                                 checkedInHighlightIds = new Set(),
                              }: AttendeeListProps) => {
     const checkInButtonText = (attendee: Attendee) => {
         if (!allowOrdersAwaitingOfflinePaymentToCheckIn && attendee.status === 'AWAITING_PAYMENT') {
@@ -73,7 +75,10 @@ export const AttendeeList = ({
                 const isAttendeeAwaitingPayment = attendee.status === 'AWAITING_PAYMENT';
 
                 return (
-                    <div className={classes.attendee} key={attendee.public_id}>
+                    <div
+                        className={`${classes.attendee} ${(attendee.check_in || checkedInHighlightIds.has(attendee.public_id)) ? classes.checkedIn : ''}`}
+                        key={attendee.public_id}
+                    >
                         <div className={classes.details}>
                             <div>
                                 <b>{attendee.first_name} {attendee.last_name}</b>

@@ -4,8 +4,10 @@ namespace HiEvents\Repository\Eloquent;
 
 use HiEvents\DomainObjects\Status\WebhookStatus;
 use HiEvents\DomainObjects\WebhookDomainObject;
+use HiEvents\Http\DTO\QueryParamsDTO;
 use HiEvents\Models\Webhook;
 use HiEvents\Repository\Interfaces\WebhookRepositoryInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 /**
@@ -41,5 +43,16 @@ class WebhookRepository extends BaseRepository implements WebhookRepositoryInter
         $this->resetModel();
 
         return $this->handleResults($results);
+    }
+
+    public function paginateByFilters(array $where, QueryParamsDTO $params): LengthAwarePaginator
+    {
+        $this->model = $this->model->orderBy('id', 'desc');
+
+        return $this->paginateWhere(
+            where: $where,
+            limit: $params->per_page,
+            page: $params->page,
+        );
     }
 }

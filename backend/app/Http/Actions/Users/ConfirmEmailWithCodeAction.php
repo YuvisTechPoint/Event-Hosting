@@ -2,7 +2,9 @@
 
 namespace HiEvents\Http\Actions\Users;
 
+use HiEvents\Exceptions\ResourceConflictException;
 use HiEvents\Http\Actions\BaseAction;
+use HiEvents\Http\ResponseCodes;
 use HiEvents\Services\Application\Handlers\User\ConfirmEmailWithCodeHandler;
 use HiEvents\Services\Application\Handlers\User\DTO\ConfirmEmailWithCodeDTO;
 use HiEvents\Services\Application\Handlers\User\Exception\InvalidEmailVerificationCodeException;
@@ -37,6 +39,8 @@ class ConfirmEmailWithCodeAction extends BaseAction
             throw ValidationException::withMessages([
                 'code' => $e->getMessage(),
             ]);
+        } catch (ResourceConflictException $e) {
+            return $this->errorResponse($e->getMessage(), ResponseCodes::HTTP_CONFLICT);
         }
 
         return $this->jsonResponse([

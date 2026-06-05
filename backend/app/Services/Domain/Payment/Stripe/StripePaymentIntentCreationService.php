@@ -9,6 +9,7 @@ use HiEvents\Services\Domain\Order\DTO\ApplicationFeeValuesDTO;
 use HiEvents\Services\Domain\Order\OrderApplicationFeeCalculationService;
 use HiEvents\Services\Domain\Payment\Stripe\DTOs\CreatePaymentIntentRequestDTO;
 use HiEvents\Services\Domain\Payment\Stripe\DTOs\CreatePaymentIntentResponseDTO;
+use HiEvents\Values\MoneyValue;
 use Illuminate\Config\Repository;
 use Illuminate\Database\DatabaseManager;
 use Psr\Log\LoggerInterface;
@@ -85,11 +86,17 @@ class StripePaymentIntentCreationService
                 ],
                 ...($paymentIntentDTO->description ? ['description' => $paymentIntentDTO->description] : []),
                 ...($applicationFee && !$bypassApplicationFees ? ['application_fee_amount' => $applicationFee->grossApplicationFee->toMinorUnit()] : []),
-            ], $this->getStripeAccountData($paymentIntentDTO));
+            ], array_merge(
+                $this->getStripeAccountData($paymentIntentDTO),
+                ['idempotency_key' => $this->buildIdempotencyKey($paymentIntentDTO)],
+            ));
 
             $this->logger->debug('Stripe payment intent created', [
                 'paymentIntentId' => $paymentIntent->id,
-                'paymentIntentDTO' => $paymentIntentDTO->toArray(['account']),
+                'order_id' => $paymentIntentDTO->order->getId(),
+                'order_short_id' => $paymentIntentDTO->order->getShortId(),
+                'amount' => $paymentIntentDTO->amount->toMinorUnit(),
+                'currency' => $paymentIntentDTO->currencyCode,
             ]);
 
             $this->databaseManager->commit();
@@ -102,8 +109,10 @@ class StripePaymentIntentCreationService
             );
         } catch (ApiErrorException $exception) {
             $this->logger->error("Stripe payment intent creation failed: {$exception->getMessage()}", [
-                'exception' => $exception,
-                'paymentIntentDTO' => $paymentIntentDTO->toArray(['account']),
+                'stripe_code' => $exception->getStripeCode(),
+                'http_status' => $exception->getHttpStatus(),
+                'order_id' => $paymentIntentDTO->order->getId(),
+                'order_short_id' => $paymentIntentDTO->order->getShortId(),
             ]);
 
             $this->databaseManager->rollBack();
@@ -129,9 +138,11 @@ class StripePaymentIntentCreationService
 
         if ($paymentIntentDTO->stripeAccountId === null) {
             $this->logger->error(
-                'Stripe Connect account not found for the event organizer, payment intent creation failed.
-                You will need to connect your Stripe account to receive payments.',
-                ['paymentIntentDTO' => $paymentIntentDTO->toArray(['account'])]
+                'Stripe Connect account not found for the event organizer, payment intent creation failed.',
+                [
+                    'order_id' => $paymentIntentDTO->order->getId(),
+                    'event_id' => $paymentIntentDTO->order->getEventId(),
+                ],
             );
 
             throw new CreatePaymentIntentFailedException(
@@ -227,5 +238,14 @@ class StripePaymentIntentCreationService
         }
 
         return $metaData;
+    }
+
+    private function buildIdempotencyKey(CreatePaymentIntentRequestDTO $paymentIntentDTO): string
+    {
+        return 'pi_' . $paymentIntentDTO->order->getShortId() . '_' . hash('sha256', implode('|', [
+            $paymentIntentDTO->amount->toMinorUnit(),
+            strtolower($paymentIntentDTO->currencyCode),
+            $paymentIntentDTO->stripeAccountId ?? 'platform',
+        ]));
     }
 }

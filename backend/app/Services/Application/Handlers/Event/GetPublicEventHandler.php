@@ -18,7 +18,10 @@ use HiEvents\Repository\Interfaces\EventRepositoryInterface;
 use HiEvents\Repository\Interfaces\PromoCodeRepositoryInterface;
 use HiEvents\Services\Application\Handlers\Event\DTO\GetPublicEventDTO;
 use HiEvents\Services\Domain\Event\EventPageViewIncrementService;
+use HiEvents\Services\Domain\Event\EventTicketAvailabilityCacheService;
 use HiEvents\Services\Domain\Product\ProductFilterService;
+use Illuminate\Config\Repository as Config;
+use Illuminate\Contracts\Cache\Repository as Cache;
 
 class GetPublicEventHandler
 {
@@ -26,12 +29,47 @@ class GetPublicEventHandler
         private readonly EventRepositoryInterface      $eventRepository,
         private readonly PromoCodeRepositoryInterface  $promoCodeRepository,
         private readonly ProductFilterService          $productFilterService,
-        private readonly EventPageViewIncrementService $eventPageViewIncrementService,
+        private readonly EventPageViewIncrementService        $eventPageViewIncrementService,
+        private readonly EventTicketAvailabilityCacheService  $ticketAvailabilityCacheService,
+        private readonly Cache                                $cache,
+        private readonly Config                               $config,
     )
     {
     }
 
     public function handle(GetPublicEventDTO $data): EventDomainObject
+    {
+        $event = $this->resolveEvent($data);
+
+        if (!$data->isAuthenticated) {
+            $this->eventPageViewIncrementService->increment($data->eventId, $data->ipAddress);
+        }
+
+        return $event;
+    }
+
+    private function resolveEvent(GetPublicEventDTO $data): EventDomainObject
+    {
+        $cacheTtl = $this->config->get('app.public_event_cache_ttl');
+        $cacheKey = $this->ticketAvailabilityCacheService->buildPublicEventCacheKey($data->eventId, $data->promoCode);
+
+        if ($cacheTtl && !$data->isAuthenticated) {
+            $cached = $this->cache->get($cacheKey);
+            if ($cached instanceof EventDomainObject) {
+                return $cached;
+            }
+        }
+
+        $event = $this->fetchEvent($data);
+
+        if ($cacheTtl && !$data->isAuthenticated) {
+            $this->cache->put($cacheKey, $event, $cacheTtl);
+        }
+
+        return $event;
+    }
+
+    private function fetchEvent(GetPublicEventDTO $data): EventDomainObject
     {
         $event = $this->eventRepository
             ->loadRelation(
@@ -64,13 +102,10 @@ class GetPublicEventHandler
             $promoCodeDomainObject = null;
         }
 
-        if (!$data->isAuthenticated) {
-            $this->eventPageViewIncrementService->increment($data->eventId, $data->ipAddress);
-        }
-
         return $event->setProductCategories($this->productFilterService->filter(
             productsCategories: $event->getProductCategories(),
             promoCode: $promoCodeDomainObject
         ));
     }
+
 }

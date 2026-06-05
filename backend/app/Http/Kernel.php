@@ -8,10 +8,15 @@ use HiEvents\Http\Middleware\HandleDeprecatedTimezones;
 use HiEvents\Http\Middleware\LogImpersonationMiddleware;
 use HiEvents\Http\Middleware\PreventRequestsDuringMaintenance;
 use HiEvents\Http\Middleware\RedirectIfAuthenticated;
+use HiEvents\Http\Middleware\SanitizeRequestInput;
+use HiEvents\Http\Middleware\SecurityHeaders;
 use HiEvents\Http\Middleware\SetAccountContext;
+use HiEvents\Http\Middleware\SetEtagHeader;
+use HiEvents\Http\Middleware\SetJwtFromCookie;
 use HiEvents\Http\Middleware\SetUserLocaleMiddleware;
 use HiEvents\Http\Middleware\TrimStrings;
 use HiEvents\Http\Middleware\TrustProxies;
+use HiEvents\Http\Middleware\ValidateApiCsrfToken;
 use HiEvents\Http\Middleware\ValidateSignature;
 use HiEvents\Http\Middleware\VaporBinaryResponseMiddleware;
 use HiEvents\Http\Middleware\VerifyCsrfToken;
@@ -44,9 +49,11 @@ class Kernel extends HttpKernel
         // \App\Http\Middleware\TrustHosts::class,
         TrustProxies::class,
         HandleCors::class,
+        SecurityHeaders::class,
         PreventRequestsDuringMaintenance::class,
         ValidatePostSize::class,
         TrimStrings::class,
+        SanitizeRequestInput::class,
         ConvertEmptyStringsToNull::class,
         HandleDeprecatedTimezones::class,
         VaporBinaryResponseMiddleware::class,
@@ -68,7 +75,9 @@ class Kernel extends HttpKernel
         ],
 
         'api' => [
+            SetJwtFromCookie::class,
             ThrottleRequests::class . ':api',
+            ValidateApiCsrfToken::class,
             SubstituteBindings::class,
             SetAccountContext::class,
             SetUserLocaleMiddleware::class,
@@ -94,5 +103,6 @@ class Kernel extends HttpKernel
         'signed' => ValidateSignature::class,
         'throttle' => ThrottleRequests::class,
         'verified' => EnsureEmailIsVerified::class,
+        'etag' => SetEtagHeader::class,
     ];
 }

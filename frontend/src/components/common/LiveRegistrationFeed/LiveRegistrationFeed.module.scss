@@ -1,0 +1,38 @@
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--mantine-color-gray-2);
+  transition: background-color 0.4s ease, transform 0.3s ease;
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.highlight {
+  animation: slideIn 0.4s ease;
+  background-color: rgba(64, 41, 108, 0.08);
+  border-radius: 6px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.feed {
+  margin-bottom: 20px;
+}

@@ -11,15 +11,21 @@ use HiEvents\Exceptions\CannotCheckInException;
 use HiEvents\Repository\Interfaces\AttendeeRepositoryInterface;
 use HiEvents\Repository\Interfaces\UserRepositoryInterface;
 use HiEvents\Services\Application\Handlers\Attendee\DTO\CheckInAttendeeDTO;
+use HiEvents\Services\Domain\Event\EventAnalyticsFetchService;
+use HiEvents\Services\Infrastructure\Broadcasting\AttendeeCheckInLockService;
+use HiEvents\Services\Infrastructure\Broadcasting\EventRealtimeBroadcastService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 
 class CheckInAttendeeHandler
 {
     public function __construct(
-        private readonly AttendeeRepositoryInterface $attendeeRepository,
-        private readonly UserRepositoryInterface     $userRepository,
-        private readonly LoggerInterface             $logger,
+        private readonly AttendeeRepositoryInterface      $attendeeRepository,
+        private readonly UserRepositoryInterface          $userRepository,
+        private readonly LoggerInterface                  $logger,
+        private readonly AttendeeCheckInLockService     $checkInLockService,
+        private readonly EventRealtimeBroadcastService  $eventRealtimeBroadcastService,
+        private readonly EventAnalyticsFetchService     $eventAnalyticsFetchService,
     )
     {
     }
@@ -32,12 +38,32 @@ class CheckInAttendeeHandler
     {
         $attendee = $this->fetchAttendee($checkInAttendeeDTO);
 
-        $this->validateAttendeeStatus($attendee);
-        $this->validateAction($attendee, $checkInAttendeeDTO);
+        $result = $this->checkInLockService->withLock($attendee->getId(), function () use ($checkInAttendeeDTO, $attendee) {
+            $attendee = $this->fetchAttendee($checkInAttendeeDTO);
 
-        $this->updateCheckInStatus($checkInAttendeeDTO);
+            $this->validateAttendeeStatus($attendee);
+            $this->validateAction($attendee, $checkInAttendeeDTO);
 
-        return $this->fetchAttendee($checkInAttendeeDTO);
+            $this->updateCheckInStatus($checkInAttendeeDTO);
+
+            $updatedAttendee = $this->fetchAttendee($checkInAttendeeDTO);
+
+            if ($checkInAttendeeDTO->action === CheckInAction::CHECK_IN) {
+                $checkedInBy = $this->userRepository->findById($checkInAttendeeDTO->checked_in_by_user_id);
+
+                $this->eventRealtimeBroadcastService->broadcastAttendeeCheckedIn(
+                    attendee: $updatedAttendee,
+                    checkedInBy: $checkedInBy?->getFullName(),
+                    checkedInAt: $updatedAttendee->getCheckedInAt() ?? now()->toDateTimeString(),
+                );
+            }
+
+            return $updatedAttendee;
+        });
+
+        $this->eventAnalyticsFetchService->invalidateCache($checkInAttendeeDTO->event_id);
+
+        return $result;
     }
 
     private function fetchAttendee(CheckInAttendeeDTO $checkInAttendeeDTO): AttendeeDomainObject
@@ -93,7 +119,7 @@ class CheckInAttendeeHandler
                     "Cannot check :actionName attendee as they were already checked :actionName by :fullName :time.",
                     [
                         'actionName' => $actionName,
-                        'fullName' => $user->getFullName(),
+                        'fullName' => $user?->getFullName() ?? __('Unknown'),
                         'time' => $checkInAttendeeDTO->action === CheckInAction::CHECK_IN
                             ? Carbon::createFromTimeString($attendee->getCheckedInAt())->ago()
                             : '',

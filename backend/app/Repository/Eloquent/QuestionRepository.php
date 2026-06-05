@@ -8,8 +8,10 @@ use HiEvents\Models\Question;
 use HiEvents\Models\ProductQuestion;
 use HiEvents\Repository\Interfaces\QuestionRepositoryInterface;
 use HiEvents\Repository\Interfaces\ProductRepositoryInterface;
+use HiEvents\Http\DTO\QueryParamsDTO;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Foundation\Application;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 /**
@@ -71,12 +73,25 @@ class QuestionRepository extends BaseRepository implements QuestionRepositoryInt
         }
     }
 
-    public function findByEventId(int $eventId): Collection
+    public function findByEventId(int $eventId, ?QueryParamsDTO $params = null, array $additionalWhere = []): Collection|LengthAwarePaginator
     {
+        $where = array_merge([
+            QuestionDomainObjectAbstract::EVENT_ID => $eventId,
+        ], $additionalWhere);
+
+        if ($params !== null) {
+            $this->model = $this->model->orderBy('order', 'asc');
+
+            return $this->paginateWhere(
+                where: $where,
+                limit: $params->per_page,
+                page: $params->page,
+            );
+        }
+
         return $this
-            ->findWhere([
-                QuestionDomainObjectAbstract::EVENT_ID => $eventId,
-            ])->sortBy((fn(QuestionDomainObject $question) => $question->getOrder()));
+            ->findWhere($where)
+            ->sortBy((fn(QuestionDomainObject $question) => $question->getOrder()));
     }
 
     public function sortQuestions(int $eventId, array $orderedQuestionIds): void

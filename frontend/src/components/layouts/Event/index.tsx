@@ -1,6 +1,7 @@
 import {
     IconArrowLeft,
     IconChartPie,
+    IconChartBar,
     IconChevronRight,
     IconDashboard,
     IconDeviceTabletCode,
@@ -48,6 +49,9 @@ import {useGetMe} from "../../../queries/useGetMe.ts";
 import {useResendEmailConfirmation} from "../../../mutations/useResendEmailConfirmation.ts";
 import {useState} from "react";
 import {eventHomepageUrl} from "../../../utilites/urlHelper.ts";
+import {EventNotificationsProvider} from "../../../contexts/EventNotificationsContext.tsx";
+import {NotificationBell} from "../../common/NotificationBell";
+import {isRealtimeEnabled} from "../../../utilites/echo.ts";
 
 const EventLayout = () => {
     const location = useLocation();
@@ -92,6 +96,7 @@ const EventLayout = () => {
             showWhen: () => !eventSettings?.hide_getting_started_page
         },
         {link: 'dashboard', label: t`Dashboard`, icon: IconDashboard},
+        {link: 'analytics', label: t`Analytics`, icon: IconChartBar},
         {
             link: 'reports',
             label: t`Reports`,
@@ -174,6 +179,7 @@ const EventLayout = () => {
     };
 
     return (
+        <EventNotificationsProvider eventId={eventId}>
         <AppLayout
             navItems={navItemsWithLoading}
             breadcrumbItems={breadcrumbItems}
@@ -229,7 +235,9 @@ const EventLayout = () => {
                 </div>
             )}
             actionGroupContent={(
-                <Button
+                <>
+                    {isRealtimeEnabled() && <NotificationBell/>}
+                    <Button
                     component={NavLink}
                     to={`/event/${eventId}/${event?.slug}`}
                     target={'_blank'}
@@ -248,6 +256,7 @@ const EventLayout = () => {
                     </div>
 
                 </Button>
+                </>
             )}
             sidebarFooter={
                 (me && !me.is_email_verified && !emailConfirmationResent ? (
@@ -262,6 +271,7 @@ const EventLayout = () => {
                 ) : null)
             }
         />
+        </EventNotificationsProvider>
     );
 };
 

@@ -1,5 +1,7 @@
 <?php
 
+use HiEvents\Models\User;
+use HiEvents\Repository\Interfaces\EventRepositoryInterface;
 use Illuminate\Support\Facades\Broadcast;
 
 /*
@@ -7,12 +9,24 @@ use Illuminate\Support\Facades\Broadcast;
 | Broadcast Channels
 |--------------------------------------------------------------------------
 |
-| Here you may register all of the event broadcasting channels that your
-| application supports. The given channel authorization callbacks are
-| used to check if an authenticated user can listen to the channel.
+| Private event channels require an authenticated organizer/staff user whose
+| account owns the event. Public capacity channels (event.{id}.capacity) are
+| not registered here — they are open for ticket purchase pages.
 |
 */
 
-Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
-    return (int) $user->id === (int) $id;
+Broadcast::channel('event.{eventId}', function (User $user, int $eventId) {
+    try {
+        $accountId = auth()->payload()->get('account_id');
+    } catch (Throwable) {
+        return false;
+    }
+
+    if (!$accountId) {
+        return false;
+    }
+
+    $event = app(EventRepositoryInterface::class)->findById($eventId);
+
+    return $event !== null && $event->getAccountId() === (int) $accountId;
 });

@@ -1,4 +1,4 @@
-import {t, Trans} from "@lingui/macro";
+﻿import {t, Trans} from "@lingui/macro";
 import {
     ActionIcon,
     Anchor,
@@ -37,6 +37,8 @@ import {IconChevronRight, IconX} from "@tabler/icons-react"
 import {getSessionIdentifier} from "../../../../utilites/sessionIdentifier.ts";
 import {Constants} from "../../../../constants.ts";
 import {clearWaitlistJoinedForEvent} from "../../../../hooks/useWaitlistJoined.ts";
+import {useRealtimePublicChannel} from "../../../../hooks/useRealtimeChannels.ts";
+import {isRealtimeEnabled} from "../../../../utilites/echo.ts";
 
 const AFFILIATE_EXPIRY_DAYS = 30;
 
@@ -90,6 +92,54 @@ const SelectProducts = (props: SelectProductsProps) => {
     const [resizeRef, resizeObserverRect] = useResizeObserver();
     const [collapsedProducts, setCollapsedProducts] = useState<{ [key: number]: boolean }>({});
     const [affiliateCode, setAffiliateCode] = useState<string | null>(null);
+    const [widgetSoldOut, setWidgetSoldOut] = useState(false);
+
+    useRealtimePublicChannel({
+        channelName: eventId ? `event.${eventId}.capacity` : undefined,
+        enabled: Boolean(eventId) && isRealtimeEnabled(),
+        events: {
+            'ticket.sold': (payload) => {
+                const productId = Number(payload.product_id);
+                const remaining = Number(payload.remaining_capacity);
+                const isUnlimited = Boolean(payload.is_unlimited);
+
+                setEvent((prev) => {
+                    if (!prev?.product_categories) {
+                        return prev;
+                    }
+
+                    return {
+                        ...prev,
+                        product_categories: prev.product_categories.map((category) => ({
+                            ...category,
+                            products: category.products?.map((product) => {
+                                if (product.id !== productId) {
+                                    return product;
+                                }
+
+                                const updatedPrices = product.prices?.map((price) => ({
+                                    ...price,
+                                    quantity_remaining: isUnlimited ? price.quantity_remaining : remaining,
+                                    is_sold_out: !isUnlimited && remaining <= 0,
+                                }));
+
+                                return {
+                                    ...product,
+                                    quantity_available: isUnlimited ? product.quantity_available : remaining,
+                                    is_available: isUnlimited || remaining > 0,
+                                    prices: updatedPrices,
+                                    is_sold_out: !isUnlimited && remaining <= 0,
+                                };
+                            }),
+                        })),
+                    };
+                });
+            },
+            'capacity.sold-out': () => {
+                setWidgetSoldOut(true);
+            },
+        },
+    });
 
     useEffect(() => sendHeightToIframeWidgets(), [resizeObserverRect.height]);
 
@@ -299,6 +349,7 @@ const SelectProducts = (props: SelectProductsProps) => {
         || !productAreAvailable
         || selectedProductQuantitySum === 0
         || props.widgetMode === 'preview'
+        || widgetSoldOut
         || products?.every(product => product.is_sold_out);
 
     let productIndex = 0;
@@ -606,15 +657,15 @@ const SelectProducts = (props: SelectProductsProps) => {
 
             {
                 /**
-                 * (c) Hi.Events Ltd 2025
+                 * (c) Event Hosting 2025
                  *
                  * PLEASE NOTE:
                  *
-                 * Hi.Events is licensed under the GNU Affero General Public License (AGPL) version 3.
+                 * Event Hosting is licensed under the GNU Affero General Public License (AGPL) version 3.
                  *
                  * You can find the full license text at: https://github.com/HiEventsDev/hi.events/blob/main/LICENCE
                  *
-                 * In accordance with Section 7(b) of the AGPL, we ask that you retain the "Powered by Hi.Events" notice.
+                 * In accordance with Section 7(b) of the AGPL, we ask that you retain the "Powered by Event Hosting" notice.
                  *
                  * If you wish to remove this notice, a commercial license is available at: https://hi.events/licensing
                  */

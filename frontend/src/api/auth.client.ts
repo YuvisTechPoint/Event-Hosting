@@ -10,7 +10,7 @@ import {api} from './client.ts';
 
 export const authClient = {
     refreshAccessTokenFn: async () => {
-        const response = await api.get<LoginResponse>('auth/refresh');
+        const response = await api.post<LoginResponse>('auth/refresh');
         return response.data;
     },
 

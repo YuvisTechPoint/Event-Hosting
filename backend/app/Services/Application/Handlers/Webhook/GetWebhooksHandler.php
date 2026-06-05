@@ -2,9 +2,9 @@
 
 namespace HiEvents\Services\Application\Handlers\Webhook;
 
-use HiEvents\Repository\Eloquent\Value\OrderAndDirection;
+use HiEvents\Http\DTO\QueryParamsDTO;
 use HiEvents\Repository\Interfaces\WebhookRepositoryInterface;
-use Illuminate\Support\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class GetWebhooksHandler
 {
@@ -14,7 +14,12 @@ class GetWebhooksHandler
     {
     }
 
-    public function handler(int $accountId, ?int $eventId = null, ?int $organizerId = null): Collection
+    public function handler(
+        int $accountId,
+        QueryParamsDTO $params,
+        ?int $eventId = null,
+        ?int $organizerId = null,
+    ): LengthAwarePaginator
     {
         $where = ['account_id' => $accountId];
         if ($eventId !== null) {
@@ -24,11 +29,6 @@ class GetWebhooksHandler
             $where['organizer_id'] = $organizerId;
         }
 
-        return $this->webhookRepository->findWhere(
-            where: $where,
-            orderAndDirections: [
-                new OrderAndDirection('id', OrderAndDirection::DIRECTION_DESC),
-            ]
-        );
+        return $this->webhookRepository->paginateByFilters($where, $params);
     }
 }

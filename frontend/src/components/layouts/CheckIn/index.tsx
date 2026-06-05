@@ -11,7 +11,7 @@ import {ActionIcon, Modal} from "@mantine/core";
 import {SearchBar} from "../../common/SearchBar";
 import {IconInfoCircle, IconQrcode, IconVolume, IconVolumeOff} from "@tabler/icons-react";
 import {QRScannerComponent} from "../../common/AttendeeCheckInTable/QrScanner.tsx";
-import {useGetCheckInListAttendees} from "../../../queries/useGetCheckInListAttendeesPublic.ts";
+import {useGetCheckInListAttendees, GET_CHECK_IN_LIST_ATTENDEES_PUBLIC_QUERY_KEY} from "../../../queries/useGetCheckInListAttendeesPublic.ts";
 import {useCreateCheckInPublic} from "../../../mutations/useCreateCheckInPublic.ts";
 import {useDeleteCheckInPublic} from "../../../mutations/useDeleteCheckInPublic.ts";
 import {NoResultsSplash} from "../../common/NoResultsSplash";
@@ -26,6 +26,10 @@ import {ScannerSelectionModal} from "../../common/CheckIn/ScannerSelectionModal"
 import {CheckInInfoModal} from "../../common/CheckIn/CheckInInfoModal";
 import {HidScannerStatus} from "../../common/CheckIn/HidScannerStatus";
 import {Button} from "@mantine/core";
+import {useRealtimePublicChannel} from "../../../hooks/useRealtimeChannels.ts";
+import {useQueryClient} from "@tanstack/react-query";
+import {Text} from "@mantine/core";
+import {Helmet} from "react-helmet-async";
 
 const CheckIn = () => {
     const networkStatus = useNetwork();
@@ -80,9 +84,47 @@ const CheckIn = () => {
     const attendees = attendeesQuery?.data?.data;
     const checkInMutation = useCreateCheckInPublic(queryFilters);
     const deleteCheckInMutation = useDeleteCheckInPublic(queryFilters);
+    const queryClient = useQueryClient();
+    const [checkedInHighlightIds, setCheckedInHighlightIds] = useState<Set<string>>(new Set());
+    const [liveCheckedInCount, setLiveCheckedInCount] = useState<number | null>(null);
+    const [countPulse, setCountPulse] = useState(false);
+    const [recentCheckIns, setRecentCheckIns] = useState<Array<{name: string; by: string}>>([]);
     const areOfflinePaymentsEnabled = eventSettings?.payment_providers?.includes('OFFLINE');
     const allowOrdersAwaitingOfflinePaymentToCheckIn = areOfflinePaymentsEnabled
         && eventSettings?.allow_orders_awaiting_offline_payment_to_check_in;
+
+    useRealtimePublicChannel({
+        channelName: event?.id ? `event.${event.id}.check-in` : undefined,
+        enabled: Boolean(event?.id),
+        events: {
+            'attendee.checked-in': (payload) => {
+                const publicId = String(payload.attendee_public_id ?? '');
+                if (publicId) {
+                    setCheckedInHighlightIds((prev) => new Set(prev).add(publicId));
+                    window.setTimeout(() => {
+                        setCheckedInHighlightIds((prev) => {
+                            const next = new Set(prev);
+                            next.delete(publicId);
+                            return next;
+                        });
+                    }, 3000);
+                }
+
+                if (typeof payload.total_checked_in === 'number') {
+                    setLiveCheckedInCount(payload.total_checked_in);
+                    setCountPulse(true);
+                    window.setTimeout(() => setCountPulse(false), 600);
+                }
+
+                setRecentCheckIns((prev) => [{
+                    name: String(payload.attendee_name ?? ''),
+                    by: String(payload.checked_in_by ?? t`Staff`),
+                }, ...prev].slice(0, 5));
+
+                queryClient.invalidateQueries({queryKey: [GET_CHECK_IN_LIST_ATTENDEES_PUBLIC_QUERY_KEY, checkInListShortId]});
+            },
+        },
+    });
 
     // Save sound preference to localStorage
     useEffect(() => {
@@ -90,6 +132,16 @@ const CheckIn = () => {
             localStorage.setItem("scannerSoundOn", JSON.stringify(isSoundOn));
         }
     }, [isSoundOn]);
+
+    // Register check-in PWA service worker (installable, offline shell)
+    useEffect(() => {
+        if (isSsr() || !('serviceWorker' in navigator)) {
+            return;
+        }
+        navigator.serviceWorker.register('/check-in-sw.js', {scope: '/check-in/'}).catch(() => {
+            // Non-fatal: check-in still works without SW
+        });
+    }, []);
 
     // Sound helpers
     const playSuccessSound = useCallback(() => {
@@ -400,6 +452,14 @@ const CheckIn = () => {
 
     return (
         <div className={classes.container}>
+            <Helmet>
+                <title>{checkInList?.name ?? t`Check-In`} | Event Hosting</title>
+                <link rel="manifest" href="/check-in-manifest.webmanifest"/>
+                <meta name="theme-color" content="#cd58dd"/>
+                <meta name="apple-mobile-web-app-capable" content="yes"/>
+                <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+                <meta name="apple-mobile-web-app-title" content={t`Check-In`}/>
+            </Helmet>
             <Header
                 fullWidth
                 rightContent={(
@@ -427,6 +487,17 @@ const CheckIn = () => {
                     <h4 className={classes.title}>
                         <Truncate text={checkInList?.name} length={30}/>
                     </h4>
+                    {liveCheckedInCount !== null ? (
+                        <Text size="sm" c="dimmed">
+                            {t`Checked in`}: <strong className={countPulse ? classes.countPulse : undefined}>{liveCheckedInCount}</strong>
+                            {checkInList?.total_attendees ? ` / ${checkInList.total_attendees}` : ''}
+                        </Text>
+                    ) : checkInList ? (
+                        <Text size="sm" c="dimmed">
+                            {t`Checked in`}: <strong>{checkInList.checked_in_attendees}</strong>
+                            {` / ${checkInList.total_attendees}`}
+                        </Text>
+                    ) : null}
                 </div>
                 <div className={classes.search}>
                     <div className={classes.searchBar}>
@@ -467,7 +538,17 @@ const CheckIn = () => {
                 allowOrdersAwaitingOfflinePaymentToCheckIn={allowOrdersAwaitingOfflinePaymentToCheckIn || false}
                 onCheckInToggle={handleCheckInToggle}
                 onClickSound={playClickSound}
+                checkedInHighlightIds={checkedInHighlightIds}
             />
+            {recentCheckIns.length > 0 && (
+                <div className={classes.recentCheckIns}>
+                    {recentCheckIns.map((entry, index) => (
+                        <Text key={index} size="xs" c="dimmed">
+                            {entry.name} — {t`checked in by`} {entry.by}
+                        </Text>
+                    ))}
+                </div>
+            )}
             <CheckInOptionsModal
                 isOpen={checkInModalOpen}
                 attendee={selectedAttendee}
@@ -515,6 +596,7 @@ const CheckIn = () => {
             <CheckInInfoModal
                 isOpen={infoModalOpen}
                 checkInList={checkInList}
+                liveCheckedInCount={liveCheckedInCount}
                 onClose={infoModalHandlers.close}
             />
             {/* Audio elements for HID scanner sounds */}

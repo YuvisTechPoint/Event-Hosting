@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 COMPOSE_CMD="docker compose -f docker-compose.dev.yml"
 CERTS_FLAG="$1"
@@ -9,7 +9,7 @@ BG_BLACK='\033[40m'
 NC='\033[0m' # No Color
 CERTS_DIR="./certs"
 
-echo -e "${GREEN}${BG_BLACK}Installing Hi.Events...${NC}"
+echo -e "${GREEN}${BG_BLACK}Installing Event Hosting...${NC}"
 
 mkdir -p "$CERTS_DIR"
 
@@ -93,7 +93,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo -e "${GREEN}Hi.Events is now running at:${NC} https://localhost:8443"
+echo -e "${GREEN}Event Hosting is now running at:${NC} https://localhost:8443"
 
 case "$(uname -s)" in
     Darwin) open https://localhost:8443/auth/register ;;

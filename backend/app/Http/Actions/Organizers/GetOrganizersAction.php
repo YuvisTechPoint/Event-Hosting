@@ -7,6 +7,7 @@ use HiEvents\Http\Actions\BaseAction;
 use HiEvents\Repository\Interfaces\OrganizerRepositoryInterface;
 use HiEvents\Resources\Organizer\OrganizerResource;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class GetOrganizersAction extends BaseAction
 {
@@ -14,13 +15,17 @@ class GetOrganizersAction extends BaseAction
     {
     }
 
-    public function __invoke(): JsonResponse
+    public function __invoke(Request $request): JsonResponse
     {
+        $params = $this->getPaginationQueryParams($request);
+
         $organizers = $this->organizerRepository
             ->loadRelation(ImageDomainObject::class)
-            ->findwhere([
-                'account_id' => $this->getAuthenticatedAccountId(),
-            ]);
+            ->paginateWhere(
+                where: ['account_id' => $this->getAuthenticatedAccountId()],
+                limit: $params->per_page,
+                page: $params->page,
+            );
 
         return $this->resourceResponse(
             resource: OrganizerResource::class,

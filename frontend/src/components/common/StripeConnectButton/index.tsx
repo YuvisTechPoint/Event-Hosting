@@ -31,7 +31,7 @@ export const StripeConnectButton: React.FC<StripeConnectButtonProps> = ({
     const accountQuery = useGetAccount();
     const account = accountQuery.data;
     
-    // For Hi.Events, use the new platform parameter for Ireland migration
+    // For Event Hosting, use the new platform parameter for Ireland migration
     // For open-source, use existing logic (no platform parameter)
     const platformToUse = isHiEvents() ? platform || 'ie' : undefined;
     

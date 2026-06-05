@@ -7,6 +7,7 @@ namespace HiEvents\Repository\Eloquent;
 use HiEvents\DomainObjects\AccountDomainObject;
 use HiEvents\DomainObjects\EventDomainObject;
 use HiEvents\DomainObjects\EventStatisticDomainObject;
+use HiEvents\DomainObjects\ImageDomainObject;
 use HiEvents\DomainObjects\Generated\EventDomainObjectAbstract;
 use HiEvents\DomainObjects\Generated\EventSettingDomainObjectAbstract;
 use HiEvents\DomainObjects\OrganizerDomainObject;
@@ -167,5 +168,64 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
             ->where('event_settings.' . EventSettingDomainObjectAbstract::ALLOW_SEARCH_ENGINE_INDEXING, true)
             ->whereNull('events.' . EventDomainObjectAbstract::DELETED_AT)
             ->count();
+    }
+
+    public function findBrowsableLiveEvents(
+        QueryParamsDTO $params,
+        ?string $category = null,
+        ?string $startDateFrom = null,
+        ?string $startDateTo = null,
+        ?string $sortBy = 'start_date',
+    ): LengthAwarePaginator {
+        $query = $this->model
+            ->newQuery()
+            ->select('events.*')
+            ->join('event_settings', 'events.id', '=', 'event_settings.event_id')
+            ->where('events.' . EventDomainObjectAbstract::STATUS, EventStatus::LIVE->name)
+            ->where('event_settings.' . EventSettingDomainObjectAbstract::ALLOW_SEARCH_ENGINE_INDEXING, true)
+            ->whereNull('events.' . EventDomainObjectAbstract::DELETED_AT)
+            ->where(function ($builder) {
+                $builder->whereNull('events.' . EventDomainObjectAbstract::END_DATE)
+                    ->orWhere('events.' . EventDomainObjectAbstract::END_DATE, '>=', now());
+            });
+
+        if ($params->query) {
+            $search = $params->query;
+            $query->where(function ($q) use ($search) {
+                $q->where('events.' . EventDomainObjectAbstract::TITLE, 'ilike', '%' . $search . '%')
+                    ->orWhere('events.' . EventDomainObjectAbstract::DESCRIPTION, 'ilike', '%' . $search . '%');
+            });
+        }
+
+        if ($category) {
+            $query->where('events.category', $category);
+        }
+
+        if ($startDateFrom) {
+            $query->where('events.' . EventDomainObjectAbstract::START_DATE, '>=', $startDateFrom);
+        }
+
+        if ($startDateTo) {
+            $query->where('events.' . EventDomainObjectAbstract::START_DATE, '<=', $startDateTo);
+        }
+
+        $allowedSort = ['start_date', 'title', 'created_at'];
+        $sortColumn = in_array($sortBy, $allowedSort, true) ? $sortBy : 'start_date';
+        $sortDir = $sortBy === 'title' ? 'asc' : 'asc';
+
+        if ($sortBy === 'popularity') {
+            $query->leftJoin('event_statistics', 'events.id', '=', 'event_statistics.event_id')
+                ->groupBy('events.id')
+                ->orderByRaw('COALESCE(MAX(event_statistics.total_views), 0) DESC');
+        } else {
+            $query->orderBy('events.' . $sortColumn, $sortDir);
+        }
+
+        $this->loadRelation(new Relationship(OrganizerDomainObject::class, name: 'organizer'));
+        $this->loadRelation(new Relationship(ImageDomainObject::class));
+
+        return $this->handleResults(
+            $query->paginate($params->per_page, ['events.*'], 'page', $params->page)
+        );
     }
 }

@@ -13,6 +13,8 @@ import {useGetMe} from "../../../queries/useGetMe.ts";
 import {IconBuilding} from "@tabler/icons-react";
 import classes from "../../routes/welcome/Welcome.module.scss";
 import {trackEvent, AnalyticsEvents} from "../../../utilites/analytics.ts";
+import {getUserCurrency} from "../../../utilites/currency.ts";
+import {resolveTimezone} from "../../../utilites/timezone.ts";
 
 interface OrganizerFormProps {
     onSuccess?: (organizer: Organizer) => void;
@@ -73,8 +75,8 @@ export const OrganizerCreateForm = ({onSuccess, onCancel}: OrganizerFormProps) =
         initialValues: {
             name: '',
             email: '',
-            currency: '',
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            currency: getUserCurrency(),
+            timezone: resolveTimezone(),
         }
     });
 
@@ -95,15 +97,17 @@ export const OrganizerCreateForm = ({onSuccess, onCancel}: OrganizerFormProps) =
     }
 
     useEffect(() => {
-        if (meFetched) {
-            form.setFieldValue('currency', String(account?.currency_code));
+        if (!accountFetched || !meFetched || !account || !me) {
+            return;
         }
-        if (accountFetched) {
-            form.setFieldValue('name', String(account?.name));
-            form.setFieldValue('email', String(me?.email));
-            form.setFieldValue('timezone', String(me?.timezone));
-        }
-    }, [accountFetched, meFetched]);
+
+        form.setValues({
+            name: account.name ?? '',
+            email: me.email ?? account.email ?? '',
+            currency: account.currency_code ?? getUserCurrency(),
+            timezone: resolveTimezone(me.timezone ?? account.timezone),
+        });
+    }, [accountFetched, meFetched, account, me]);
 
     return (
         <LoadingContainer>

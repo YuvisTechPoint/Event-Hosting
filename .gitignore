@@ -20,3 +20,5 @@ prompts/
 
 /plans/**
 /plans
+
+/backups/*.sql

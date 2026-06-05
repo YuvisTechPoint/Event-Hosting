@@ -30,9 +30,11 @@ use HiEvents\Repository\Interfaces\OrderRepositoryInterface;
 use HiEvents\Services\Domain\Order\OrderApplicationFeeService;
 use HiEvents\Services\Domain\Payment\Stripe\StripeRefundExpiredOrderService;
 use HiEvents\Services\Domain\Product\ProductQuantityUpdateService;
+use HiEvents\Services\Infrastructure\Broadcasting\EventRealtimeBroadcastService;
 use HiEvents\Services\Infrastructure\DomainEvents\DomainEventDispatcherService;
 use HiEvents\Services\Infrastructure\DomainEvents\Enums\DomainEventType;
 use HiEvents\Services\Infrastructure\DomainEvents\Events\OrderEvent;
+use HiEvents\Values\MoneyValue;
 use Illuminate\Cache\Repository;
 use Illuminate\Database\DatabaseManager;
 use Psr\Log\LoggerInterface;
@@ -55,6 +57,7 @@ class PaymentIntentSucceededHandler
         private readonly DomainEventDispatcherService     $domainEventDispatcherService,
         private readonly OrderApplicationFeeService       $orderApplicationFeeService,
         private readonly EventSettingsRepositoryInterface $eventSettingsRepository,
+        private readonly EventRealtimeBroadcastService    $eventRealtimeBroadcastService,
     )
     {
     }
@@ -111,6 +114,8 @@ class PaymentIntentSucceededHandler
                     orderId: $updatedOrder->getId()
                 ),
             );
+
+            $this->eventRealtimeBroadcastService->handleOrderCompleted($updatedOrder);
 
             $this->markPaymentIntentAsHandled($paymentIntent, $updatedOrder);
 
@@ -219,6 +224,24 @@ class PaymentIntentSucceededHandler
         }
 
         $this->handleExpiredOrder($stripePayment, $paymentIntent);
+
+        $order = $stripePayment->getOrder();
+        $expectedAmount = MoneyValue::fromFloat($order->getTotalGross(), $order->getCurrency())->toMinorUnit();
+
+        if ($paymentIntent->amount !== $expectedAmount) {
+            $this->logger->error('Stripe payment amount mismatch', [
+                'payment_intent_id' => $paymentIntent->id,
+                'order_id' => $order->getId(),
+                'expected_amount' => $expectedAmount,
+                'received_amount' => $paymentIntent->amount,
+            ]);
+
+            throw new CannotAcceptPaymentException(
+                __('Payment amount does not match the order total. Order: :id', [
+                    'id' => $stripePayment->getOrderId(),
+                ]),
+            );
+        }
     }
 
     private function updateAttendeeStatuses(OrderDomainObject $updatedOrder): void

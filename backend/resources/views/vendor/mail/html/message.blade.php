@@ -1,4 +1,4 @@
-<x-mail::layout>
+﻿<x-mail::layout>
     {{-- Header --}}
     <x-slot:header>
         <x-mail::header :url="config('app.email_logo_link_url')">
@@ -30,14 +30,14 @@
             @if($appEmailFooter = config('app.email_footer_text'))
                 {{ $appEmailFooter }}
             @else
-                {{-- (c) Hi.Events Ltd 2025 --}}
+                {{-- (c) Event Hosting 2025 --}}
                 {{-- PLEASE NOTE: --}}
-                {{-- Hi.Events is licensed under the GNU Affero General Public License (AGPL) version 3. --}}
+                {{-- Event Hosting is licensed under the GNU Affero General Public License (AGPL) version 3. --}}
                 {{-- You can find the full license text at: https://github.com/HiEventsDev/hi.events/blob/main/LICENSE --}}
-                {{-- In accordance with Section 7(b) of the AGPL, we ask that you retain the "Powered by Hi.Events" notice. --}}
+                {{-- In accordance with Section 7(b) of the AGPL, we ask that you retain the "Powered by Event Hosting" notice. --}}
                 {{-- If you wish to remove this notice, a commercial license is available at: https://hi.events/licensing --}}
 
-                © {{ date('Y') }} {{ config('app.name') }} | Powered by <a title="Manage events and sell tickets online with Hi.Events" href="https://hi.events?utm_source=app-email-footer">Hi.Events</a>
+                © {{ date('Y') }} {{ config('app.name') }} | Powered by <a title="Manage events and sell tickets online with {{ config('app.name') }}" href="https://hi.events?utm_source=app-email-footer">{{ config('app.name') }}</a>
             @endif
         </x-mail::footer>
     </x-slot:footer>

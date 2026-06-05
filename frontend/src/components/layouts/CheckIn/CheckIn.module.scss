@@ -56,9 +56,15 @@
     }
   }
 
-  .stats {
+    .stats {
     flex: 1;
   }
+}
+
+.recentCheckIns {
+  padding: 12px 15px;
+  background: #f8f9fa;
+  border-top: 1px solid #e0e0e0;
 }
 
 .loading,
@@ -102,6 +108,30 @@
     .actions {
       flex-grow: initial;
     }
+
+    &.checkedIn {
+      background-color: #e6f9f0;
+      border-left: 3px solid #40c057;
+      transition: background-color 0.4s ease, border-color 0.4s ease;
+    }
+  }
+}
+
+.countPulse {
+  display: inline-block;
+  animation: countBump 0.6s ease;
+  color: #40c057;
+}
+
+@keyframes countBump {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
   }
 }
 

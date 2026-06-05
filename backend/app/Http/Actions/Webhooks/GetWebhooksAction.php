@@ -7,6 +7,7 @@ use HiEvents\Http\Actions\BaseAction;
 use HiEvents\Resources\Webhook\WebhookResource;
 use HiEvents\Services\Application\Handlers\Webhook\GetWebhooksHandler;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class GetWebhooksAction extends BaseAction
 {
@@ -16,13 +17,14 @@ class GetWebhooksAction extends BaseAction
     {
     }
 
-    public function __invoke(int $eventId): JsonResponse
+    public function __invoke(int $eventId, Request $request): JsonResponse
     {
         $this->isActionAuthorized($eventId, EventDomainObject::class);
 
         $webhooks = $this->getWebhooksHandler->handler(
             accountId: $this->getAuthenticatedAccountId(),
-            eventId: $eventId
+            params: $this->getPaginationQueryParams($request),
+            eventId: $eventId,
         );
 
         return $this->resourceResponse(

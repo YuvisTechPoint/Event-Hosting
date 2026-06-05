@@ -29,7 +29,7 @@ return new class extends Migration
         });
 
         // Migrate existing data from accounts table to the new table
-        // For Hi.Events installations, set platform to 'ca' (Canada), otherwise leave as NULL for open-source
+        // For Event Hosting installations, set platform to 'ca' (Canada), otherwise leave as NULL for open-source
         $isHiEvents = config('app.is_hi_events', false);
         $platform = $isHiEvents ? "'ca'" : 'NULL';
 

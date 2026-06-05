@@ -1,21 +1,18 @@
 {
-  "name": "Hi.Events",
-  "short_name": "Hi.Events",
+  "name": "Event Hosting",
+  "short_name": "Event Hosting",
   "icons": [
     {
-      "src": "/manifest-icons/favicon-48x48.png",
-      "sizes": "48x48",
-      "type": "image/png"
+      "src": "/manifest-icons/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     },
     {
-      "src": "/manifest-icons/favicon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/manifest-icons/favicon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "/manifest-icons/favicon-light.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ],
   "theme_color": "#cd58dd",

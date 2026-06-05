@@ -11,14 +11,16 @@ import classes from "./EventDashboard.module.scss";
 import {useGetEventStats} from "../../../../queries/useGetEventStats.ts";
 import {formatCurrency} from "../../../../utilites/currency.ts";
 import {formatDateWithLocale} from "../../../../utilites/dates.ts";
-import {Button, SegmentedControl, Skeleton, Tooltip} from "@mantine/core";
+import {Alert, Button, SegmentedControl, Skeleton, Tooltip} from "@mantine/core";
 import {useMediaQuery} from "@mantine/hooks";
 import {IconAlertCircle, IconX} from "@tabler/icons-react";
 import {useGetAccount} from "../../../../queries/useGetAccount.ts";
 import {useUpdateEventStatus} from "../../../../mutations/useUpdateEventStatus.ts";
 import {confirmationDialog} from "../../../../utilites/confirmationDialog.tsx";
 import {showError, showSuccess} from "../../../../utilites/notifications.tsx";
-import {useEffect, useRef, useState} from 'react';
+import {LiveRegistrationFeed} from "../../../common/LiveRegistrationFeed";
+import {useRealtimeEventPrivateChannel} from "../../../../hooks/useRealtimeChannels.ts";
+import {useEffect, useRef, useState} from "react";
 import {EventLifecycleStatus, EventStatus, StripePlatform} from "../../../../types.ts";
 import {isHiEvents} from "../../../../utilites/helpers.ts";
 import {StripeConnectButton} from "../../../common/StripeConnectButton";
@@ -55,6 +57,25 @@ export const EventDashboard = () => {
 
     const [isChecklistVisible, setIsChecklistVisible] = useState(true);
     const [isMounted, setIsMounted] = useState(false);
+    const [capacityAlert, setCapacityAlert] = useState<string | null>(null);
+
+    useRealtimeEventPrivateChannel({
+        eventId,
+        enabled: Boolean(eventId),
+        events: {
+            'capacity.warning': (payload) => {
+                const percentFull = Number(payload.percent_full);
+                const totalSold = Number(payload.total_sold);
+                const totalCapacity = Number(payload.total_capacity);
+                setCapacityAlert(
+                    t`Event is ${percentFull}% full (${totalSold}/${totalCapacity} sold)`
+                );
+            },
+            'capacity.sold-out': () => {
+                setCapacityAlert(t`Event has reached full capacity`);
+            },
+        },
+    });
 
     const showStripeUpgradeNotice = account?.stripe_platform === StripePlatform.Canada.valueOf()
         && account?.stripe_connect_setup_complete
@@ -151,7 +172,13 @@ export const EventDashboard = () => {
             )}
 
             {event && (<>
+                {capacityAlert && (
+                    <Alert color="orange" icon={<IconAlertCircle size={16}/>} mb="md" onClose={() => setCapacityAlert(null)} withCloseButton>
+                        {capacityAlert}
+                    </Alert>
+                )}
                 <StatBoxes/>
+                <LiveRegistrationFeed eventId={eventId} timezone={event.timezone}/>
 
                 {shouldShowChecklist && (
                     <Card className={classes.setupCard}>

@@ -9,6 +9,7 @@ use HiEvents\Http\Request\Auth\LoginRequest;
 use HiEvents\Http\ResponseCodes;
 use HiEvents\Services\Application\Handlers\Auth\DTO\LoginCredentialsDTO;
 use HiEvents\Services\Application\Handlers\Auth\LoginHandler;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\JsonResponse;
 
 class LoginAction extends BaseAuthAction
@@ -26,8 +27,14 @@ class LoginAction extends BaseAuthAction
             $loginResponse = $this->loginHandler->handle(new LoginCredentialsDTO(
                 email: strtolower($request->validated('email')),
                 password: $request->validated('password'),
-                accountId: (int)$request->validated('account_id'),
+                accountId: $request->filled('account_id') ? (int) $request->validated('account_id') : null,
+                ipAddress: $request->ip(),
             ));
+        } catch (ThrottleRequestsException $e) {
+            return $this->errorResponse(
+                message: $e->getMessage(),
+                statusCode: ResponseCodes::HTTP_TOO_MANY_REQUESTS,
+            );
         } catch (UnauthorizedException $e) {
             return $this->errorResponse(
                 message: $e->getMessage(),

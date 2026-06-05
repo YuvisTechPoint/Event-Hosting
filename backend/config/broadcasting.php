@@ -1,5 +1,11 @@
 <?php
 
+/*
+| Real-time broadcasting uses the Pusher driver against Soketi in production
+| (see docker/production/docker-compose.yml). BROADCAST_DRIVER=null disables all
+| websocket output locally. Domain actions dispatch via EventRealtimeBroadcastService.
+*/
+
 return [
 
     /*
@@ -39,7 +45,7 @@ return [
                 'host' => env('PUSHER_HOST') ?: 'api-'.env('PUSHER_APP_CLUSTER', 'mt1').'.pusher.com',
                 'port' => env('PUSHER_PORT', 443),
                 'scheme' => env('PUSHER_SCHEME', 'https'),
-                'encrypted' => true,
+                'encrypted' => env('PUSHER_SCHEME', 'https') === 'https',
                 'useTLS' => env('PUSHER_SCHEME', 'https') === 'https',
             ],
             'client_options' => [

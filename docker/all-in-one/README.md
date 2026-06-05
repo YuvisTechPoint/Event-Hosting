@@ -1,19 +1,19 @@
-# Hi.Events All-in-One Docker Image
+﻿# Event Hosting All-in-One Docker Image
 
 The all-in-one Docker image runs both the frontend and backend services in a single container. While it can be used in 
 production, the recommended approach for production is to run the frontend and backend separately for better scalability and security.
 
 The provided docker-compose.yml file is meant for development and testing purposes. For production, you should use
-the [Docker image](https://hub.docker.com/r/daveearley/hi.events-all-in-one), or create your own Docker compose file with the 
-necessary [configurations for production](https://hi.events/docs/getting-started/deploying#configuring-environment-variables).
+the [Docker image](https://hub.docker.com/r/daveearley/Event Hosting-all-in-one), or create your own Docker compose file with the 
+necessary [configurations for production](https://Event Hosting/docs/getting-started/deploying#configuring-environment-variables).
 
 ## Quick Start with Docker
 
 ### Step 1: Clone the Repository
 
 ```bash
-git clone git@github.com:HiEventsDev/hi.events.git
-cd hi.events/docker/all-in-one
+git clone git@github.com:HiEventsDev/Hi.Events.git
+cd Hi.Events/docker/all-in-one
 ```
 
 ### Step 2: Copy the Environment File

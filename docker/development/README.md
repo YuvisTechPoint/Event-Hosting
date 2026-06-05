@@ -1,6 +1,6 @@
-# Hi.Events local development with Docker
+﻿# Event Hosting local development with Docker
 
-This guide walks you through setting up Hi.Events using Docker, including requirements, setup steps, configuration,
+This guide walks you through setting up Event Hosting using Docker, including requirements, setup steps, configuration,
 and environment variables.
 
 ## Requirements
@@ -112,11 +112,11 @@ start https://localhost:8443/auth/register
 
 ## Additional configuration
 
-Hi.Events uses environment variables for configuration. You’ll find `.env` files in:
+Event Hosting uses environment variables for configuration. You’ll find `.env` files in:
 
 - `frontend/.env`
 - `backend/.env`
 
 You can modify these to customize your setup.
 
-For a full list of environment variables, see the [Environment Variables Documentation](https://hi.events/docs/getting-started/deploying#environment-variables).
+For a full list of environment variables, see the [Environment Variables Documentation](https://Event Hosting/docs/getting-started/deploying#environment-variables).

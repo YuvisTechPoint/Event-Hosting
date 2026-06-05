@@ -4,12 +4,16 @@ namespace HiEvents\Services\Infrastructure\Jobs;
 
 use HiEvents\Services\Infrastructure\Jobs\DTO\JobPollingResultDTO;
 use HiEvents\Services\Infrastructure\Jobs\Enum\JobStatusEnum;
+use Illuminate\Config\Repository;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 
 class JobPollingService
 {
-    private const STORAGE_DISK = 's3-private';
+    public function __construct(
+        private readonly Repository $config,
+    ) {
+    }
 
     public function startJob(string $jobName, array $jobs): JobPollingResultDTO
     {
@@ -24,7 +28,7 @@ class JobPollingService
         );
     }
 
-    public function checkJobStatus(string $jobUuid, ?string $filePath = null): JobPollingResultDTO
+    public function checkJobStatus(string $jobUuid, ?string $filePath = null, ?string $localDownloadUrl = null): JobPollingResultDTO
     {
         $batch = Bus::findBatch($jobUuid);
 
@@ -37,7 +41,10 @@ class JobPollingService
         }
 
         if ($batch->finished()) {
-            if ($filePath && !Storage::disk(self::STORAGE_DISK)->exists($filePath)) {
+            $diskName = $this->config->get('filesystems.private');
+            $disk = Storage::disk($diskName);
+
+            if ($filePath && !$disk->exists($filePath)) {
                 return new JobPollingResultDTO(
                     status: JobStatusEnum::NOT_FOUND,
                     message: __('Export file not found'),
@@ -49,9 +56,7 @@ class JobPollingService
                 status: JobStatusEnum::FINISHED,
                 message: __('Job completed successfully'),
                 jobUuid: $jobUuid,
-                downloadUrl: $filePath
-                    ? Storage::disk(self::STORAGE_DISK)->temporaryUrl($filePath, now()->addMinutes(10))
-                    : null,
+                downloadUrl: $filePath ? $this->getDownloadUrl($diskName, $filePath, $localDownloadUrl) : null,
             );
         }
 
@@ -60,5 +65,16 @@ class JobPollingService
             message: __('Job is still in progress'),
             jobUuid: $jobUuid,
         );
+    }
+
+    private function getDownloadUrl(string $diskName, string $filePath, ?string $localDownloadUrl): ?string
+    {
+        $driver = $this->config->get("filesystems.disks.{$diskName}.driver");
+
+        if ($driver === 's3') {
+            return Storage::disk($diskName)->temporaryUrl($filePath, now()->addMinutes(10));
+        }
+
+        return $localDownloadUrl;
     }
 }

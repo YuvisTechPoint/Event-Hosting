@@ -4,6 +4,8 @@ namespace HiEvents\Services\Infrastructure\Image;
 
 use HiEvents\Services\Infrastructure\Image\DTO\ImageStorageResponseDTO;
 use HiEvents\Services\Infrastructure\Image\Exception\CouldNotUploadImageException;
+use HiEvents\Services\Infrastructure\Security\FileMimeValidationService;
+use HiEvents\Services\Infrastructure\Security\VirusScanServiceInterface;
 use Illuminate\Config\Repository;
 use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Http\UploadedFile;
@@ -13,9 +15,11 @@ use Psr\Log\LoggerInterface;
 class ImageStorageService
 {
     public function __construct(
-        private readonly FilesystemManager $filesystemManager,
-        private readonly Repository        $config,
-        private readonly LoggerInterface   $logger,
+        private readonly FilesystemManager         $filesystemManager,
+        private readonly Repository                $config,
+        private readonly LoggerInterface           $logger,
+        private readonly FileMimeValidationService $fileMimeValidationService,
+        private readonly VirusScanServiceInterface $virusScanService,
     )
     {
     }
@@ -25,6 +29,10 @@ class ImageStorageService
      */
     public function store(UploadedFile $image, string $imageType): ImageStorageResponseDTO
     {
+        $this->fileMimeValidationService->assertWithinSizeLimit($image);
+        $this->fileMimeValidationService->assertAllowedImageMime($image);
+        $this->virusScanService->scan($image);
+
         $filename = Str::slug(
                 title: str_ireplace(
                     search: '.' . $image->getClientOriginalExtension(),
