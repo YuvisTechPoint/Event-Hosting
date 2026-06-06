@@ -169,12 +169,12 @@
     z-index: 2;
   }
 
-  @media (max-width: 767px) {
+  @include mixins.respond-below(md) {
     position: fixed;
     width: 100%;
     height: 100vh;
     height: 100dvh;
-    z-index: 200;
+    z-index: var(--hi-z-mobile-sidebar);
     transform: translateX(-100%);
     top: 0;
     left: 0;
@@ -204,7 +204,7 @@
       color: white;
     }
 
-    @media (max-width: 767px) {
+    @include mixins.respond-below(md) {
       right: 16px;
       top: 28px;
       transform: none;

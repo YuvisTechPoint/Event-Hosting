@@ -23,8 +23,8 @@
 
   .breadcrumbsRow {
     padding: 10px 20px;
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
-    background-color: #fff;
+    background-color: var(--hi-topbar-breadcrumb-bg, var(--mantine-color-body));
+    border-top: 1px solid var(--mantine-color-default-border);
     backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
@@ -92,10 +92,13 @@
         max-width: 80px;
       }
 
-      // Don't truncate the last breadcrumb (often an action like "Create Event")
+      // Truncate long breadcrumb trails on mobile; last item may still ellipsize
       &:last-child {
-        max-width: none;
-        flex-shrink: 0;
+        max-width: 160px;
+
+        @include mixins.respond-above(md) {
+          max-width: none;
+        }
       }
     }
 

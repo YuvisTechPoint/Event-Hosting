@@ -7,6 +7,7 @@ import {
     User
 } from "../types.ts";
 import {api} from './client.ts';
+import {setAuthToken} from '../utilites/apiClient.ts';
 
 export const authClient = {
     refreshAccessTokenFn: async () => {
@@ -21,6 +22,9 @@ export const authClient = {
 
     login: async (user: LoginData) => {
         const response = await api.post<LoginResponse>('auth/login', user);
+        if (response.data.token) {
+            setAuthToken(response.data.token);
+        }
         return response.data;
     },
 

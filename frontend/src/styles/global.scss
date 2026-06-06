@@ -1,4 +1,5 @@
 @use "mixins";
+@use "z-index";
 
 :root {
   --hi-text: var(--mantine-color-primary-9);
@@ -15,6 +16,9 @@
   --hi-primary-alt: var(--mantine-color-primary-6);
   --hi-gradient: linear-gradient(135deg, var(--hi-primary), var(--hi-primary-alt));
   --hi-scrollbar-thumb: #e1e1e1;
+  --hi-text-light: var(--mantine-color-gray-6);
+  --hi-shell-main-bg: #f9fafc;
+  --hi-topbar-breadcrumb-bg: var(--mantine-color-white);
 
   --hi-color-white: #ffffff;
   --hi-color-black: #000000;
@@ -32,6 +36,22 @@
   --hi-radius-xl: 15px;
 }
 
+[data-mantine-color-scheme='dark'] {
+  --hi-color-gray: var(--mantine-color-dark-7);
+  --hi-color-gray-2: var(--mantine-color-dark-5);
+  --hi-color-gray-dark: var(--mantine-color-dark-2);
+  --hi-scrollbar-thumb: var(--mantine-color-dark-4);
+  --hi-text-light: var(--mantine-color-dark-1);
+  --hi-shell-main-bg: var(--mantine-color-dark-8);
+  --hi-topbar-breadcrumb-bg: var(--mantine-color-dark-7);
+}
+
+[data-mantine-color-scheme='light'] {
+  --hi-text-light: var(--mantine-color-gray-6);
+  --hi-shell-main-bg: #f9fafc;
+  --hi-topbar-breadcrumb-bg: var(--mantine-color-white);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -46,6 +66,10 @@ body {
   background-color: var(--checkout-background, var(--hi-color-gray)) !important;
   height: auto;
   letter-spacing: 0.2px;
+}
+
+[data-mantine-color-scheme='dark'] body {
+  background-color: var(--checkout-background, var(--mantine-color-body)) !important;
 }
 
 h1, h2, h3 {

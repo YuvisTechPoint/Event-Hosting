@@ -23,7 +23,6 @@ import {getConfig} from "./utilites/config.ts";
 import {CookieConsentBanner} from "./components/common/CookieConsentBanner";
 import {isConsentPending, setConsentState, updateGoogleConsentMode} from "./utilites/trackingPixels/consent";
 import {COLOR_SCHEME_STORAGE_KEY, ColorSchemeProvider} from "./contexts/ColorSchemeProvider.tsx";
-import {CommandPaletteProvider} from "./components/common/CommandPalette/CommandPaletteProvider.tsx";
 
 declare global {
     interface Window {
@@ -53,6 +52,11 @@ export const App: FC<
         setIsLoadedOnBrowser(!isSsr());
     }, []);
 
+    const loaderBackground = typeof window !== 'undefined'
+        && localStorage.getItem(COLOR_SCHEME_STORAGE_KEY) === 'light'
+        ? '#ffffff'
+        : '#1a1b1e';
+
     return (
         <React.StrictMode>
             <div
@@ -67,7 +71,7 @@ export const App: FC<
                     width: "100vw",
                     height: "100vh",
                     position: "fixed",
-                    background: "#ffffff",
+                    background: loaderBackground,
                     zIndex: 1000,
                     display: isLoadedOnBrowser ? "none" : "block",
                 }}
@@ -90,8 +94,7 @@ export const App: FC<
                 }}
             >
                 <ColorSchemeProvider>
-                    <CommandPaletteProvider>
-                        <HelmetProvider context={props.helmetContext}>
+                    <HelmetProvider context={props.helmetContext}>
                             <I18nProvider i18n={i18n}>
                                 <QueryClientProvider client={props.queryClient}>
                                     <HydrationBoundary state={props.dehydratedState}>
@@ -114,8 +117,7 @@ export const App: FC<
                                     </HydrationBoundary>
                                 </QueryClientProvider>
                             </I18nProvider>
-                        </HelmetProvider>
-                    </CommandPaletteProvider>
+                    </HelmetProvider>
                 </ColorSchemeProvider>
             </MantineProvider>
         </React.StrictMode>

@@ -110,9 +110,11 @@ class AppServiceProvider extends ServiceProvider
 
     private function handleHttpsEnforcing(): void
     {
-        if ($this->app->environment('local')) {
+        $appUrl = config('app.url');
+
+        if ($appUrl && str_starts_with($appUrl, 'https://')) {
             URL::forceScheme('https');
-            URL::forceRootUrl(config('app.url'));
+            URL::forceRootUrl($appUrl);
         }
     }
 

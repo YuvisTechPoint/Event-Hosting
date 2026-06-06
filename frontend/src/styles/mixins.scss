@@ -35,7 +35,8 @@ $breakpoints: (
 // Option to specify if the query should be a container query
 @mixin respond-below($breakpoint, $container-query: false) {
   @if map.has-key($breakpoints, $breakpoint) {
-    $value: map.get($breakpoints, $breakpoint) - 1px;
+    // Align with JS useMediaQuery('(max-width: 768px)') and min-width: 768px desktop rules
+    $value: map.get($breakpoints, $breakpoint);
 
     @if $container-query {
       // Use container query

@@ -35,6 +35,18 @@ yarn messages:compile     # Compile translations
 npx tsc --noEmit          # TypeScript validation
 ```
 
+
+### Native Windows Development (no Docker)
+
+From the repository root:
+
+```powershell
+.\scripts\dev.ps1
+```
+Or double-click / run `.\dev.cmd` from the repo root (same as `dev.ps1`).
+
+Do **not** run `pg_ctl`, bare `php`, or `yarn dev:csr` manually in sequence; the script finds WinGet PHP, treats PostgreSQL on `:5432` as already running, and will not start a second Vite on `:5678`.
+
 ### Docker Development
 
 ```bash

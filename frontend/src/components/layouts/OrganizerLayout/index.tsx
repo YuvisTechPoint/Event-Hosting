@@ -29,6 +29,7 @@ import classes from "./OrganizerLayout.module.scss";
 import { CalloutConfig, SidebarCalloutQueue } from "../../common/SidebarCallout/SidebarCalloutQueue";
 import { InviteUserModal } from "../../modals/InviteUserModal";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
+import { MOBILE_MEDIA_QUERY } from "../../../utilites/breakpoints.ts";
 import { SwitchOrganizerModal } from "../../modals/SwitchOrganizerModal";
 import { CreateOrganizerModal } from "../../modals/CreateOrganizerModal";
 import { useGetOrganizers } from "../../../queries/useGetOrganizers.ts";
@@ -62,7 +63,7 @@ const OrganizerLayout = () => {
     const [emailConfirmationResent, setEmailConfirmationResent] = useState(false);
     const { data: me } = useGetMe();
     const isUserEmailVerfied = me?.is_email_verified;
-    const isMobile = useMediaQuery('(max-width: 768px)');
+    const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY);
 
     const statusToggleMutation = useUpdateOrganizerStatus();
 

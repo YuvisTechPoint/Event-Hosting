@@ -7,6 +7,7 @@ import {BreadcrumbItem, NavItem} from "./types.ts";
 import {IconLayoutSidebar} from "@tabler/icons-react";
 import {UnstyledButton, VisuallyHidden} from "@mantine/core";
 import {t} from "@lingui/macro";
+import {MOBILE_MEDIA_QUERY, isDesktopWidth} from "../../../utilites/breakpoints.ts";
 import ImpersonationBanner from "../../common/ImpersonationBanner";
 
 interface AppLayoutProps {
@@ -50,7 +51,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                                              }) => {
     const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
         if (typeof window === 'undefined') return true; // SSR default
-        return window.innerWidth >= 768; // Desktop open, mobile closed
+        return isDesktopWidth(window.innerWidth);
     });
     const [topBarShadow, setTopBarShadow] = useState<boolean>(false);
 
@@ -67,7 +68,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 
     useEffect(() => {
         const handleResize = () => {
-            if (window.innerWidth >= 768) {
+            if (isDesktopWidth(window.innerWidth)) {
                 setSidebarOpen(true);
             } else {
                 setSidebarOpen(false);

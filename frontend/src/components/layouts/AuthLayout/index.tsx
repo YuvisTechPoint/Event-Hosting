@@ -1,4 +1,5 @@
-﻿import {Navigate, Outlet} from "react-router";
+import {Center, Loader} from "@mantine/core";
+import {Navigate, Outlet} from "react-router";
 import classes from "./Auth.module.scss";
 import {t} from "@lingui/macro";
 import {useGetMe} from "../../../queries/useGetMe.ts";
@@ -121,6 +122,14 @@ const AuthLayout = () => {
             showInfo(`HiEvents v${__APP_VERSION__}`);
         }
     }, []);
+
+    if (me.isLoading) {
+        return (
+            <Center className={classes.authLayout} style={{minHeight: '100vh'}}>
+                <Loader size="lg"/>
+            </Center>
+        );
+    }
 
     if (me.isSuccess) {
         return <Navigate to={'/manage/events'} />

@@ -13,6 +13,7 @@ import {formatCurrency} from "../../../../utilites/currency.ts";
 import {formatDateWithLocale} from "../../../../utilites/dates.ts";
 import {Alert, Button, SegmentedControl, Skeleton, Tooltip} from "@mantine/core";
 import {useMediaQuery} from "@mantine/hooks";
+import {MOBILE_MEDIA_QUERY} from "../../../../utilites/breakpoints.ts";
 import {IconAlertCircle, IconX} from "@tabler/icons-react";
 import {useGetAccount} from "../../../../queries/useGetAccount.ts";
 import {useUpdateEventStatus} from "../../../../mutations/useUpdateEventStatus.ts";
@@ -51,7 +52,7 @@ export const EventDashboard = () => {
 
     const eventStatsQuery = useGetEventStats(eventId, effectiveDateRange, !!defaultDateRangeRef.current);
     const {data: eventStats} = eventStatsQuery;
-    const isMobile = useMediaQuery('(max-width: 768px)');
+    const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY);
     const {data: account, isFetched: accountIsFetched} = useGetAccount();
     const statusToggleMutation = useUpdateEventStatus();
 

@@ -2,7 +2,7 @@ import type * as express from "express";
 import ReactDOMServer from "react-dom/server";
 import {dehydrate, QueryClient} from "@tanstack/react-query";
 
-import {router} from "./router";
+import {appRouter} from "./router";
 import {App} from "./App";
 import {setAuthToken} from "./utilites/apiClient.ts";
 import {createStaticHandler, createStaticRouter, StaticRouterProvider} from "react-router";
@@ -42,7 +42,7 @@ export async function render(params: {
 
     const helmetContext = {};
 
-    const {query, dataRoutes} = createStaticHandler(router);
+    const {query, dataRoutes} = createStaticHandler(appRouter);
     const remixRequest = createFetchRequest(params.req, params.res);
     const context = await query(remixRequest);
 

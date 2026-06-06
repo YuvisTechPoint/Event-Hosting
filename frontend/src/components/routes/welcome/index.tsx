@@ -6,6 +6,7 @@ import {Button, Center, Container, PinInput, Select, Stack, Text, TextInput} fro
 import classes from "./Welcome.module.scss";
 import {useForm} from "@mantine/form";
 import {useDebouncedValue, useMediaQuery} from "@mantine/hooks";
+import {MOBILE_MEDIA_QUERY} from "../../../utilites/breakpoints.ts";
 import {Event} from "../../../types.ts";
 import {useCreateEvent} from "../../../mutations/useCreateEvent.ts";
 import {NavLink, useNavigate} from "react-router";
@@ -59,7 +60,7 @@ const ConfirmVerificationPin = ({progressInfo}: {
     const resendMutation = useResendEmailConfirmation();
     const [resendCooldown, setResendCooldown] = useState(0);
     const [completedPin, setCompletedPin] = useState('');
-    const isMobile = useMediaQuery('(max-width: 768px)');
+    const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY);
 
     const form = useForm({
         initialValues: {

@@ -53,7 +53,7 @@ export const AffiliateTable = ({affiliates, openCreateModal}: AffiliateTableProp
         return (
             <NoResultsSplash
                 heading={t`No Affiliates to show`}
-                imageHref={'/blank-slate/affiliates.png'}
+                imageHref={'/blank-slate/promo-codes.svg'}
                 subHeading={(
                     <>
                         <p>

@@ -20,8 +20,13 @@ export const showInfo = (message: ReactNode, icon: ReactNode = <IconInfoSmall/>)
     })
 }
 
-export const showError = (message: React.ReactNode, icon: ReactNode = <IconX/>) => {
+export const showError = (
+    message: React.ReactNode,
+    icon: ReactNode = <IconX/>,
+    id?: string,
+) => {
     notifications.show({
+        id,
         message: message,
         color: 'red',
         icon: icon,

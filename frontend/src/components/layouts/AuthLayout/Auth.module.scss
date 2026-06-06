@@ -21,7 +21,7 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  background: linear-gradient(135deg, #fafafa 0%, var(--hi-color-gray) 50%, #faf8fc 100%);
+  background: linear-gradient(135deg, var(--mantine-color-body) 0%, var(--hi-color-gray) 50%, var(--mantine-color-body) 100%);
   overflow-y: auto;
   z-index: 2;
 
@@ -132,10 +132,14 @@
 .backgroundImage {
   position: absolute;
   inset: 0;
-  background-image: url("/images/backgrounds/nightlife-bg.jpg");
+  background: linear-gradient(
+    160deg,
+    var(--mantine-color-primary-9) 0%,
+    var(--mantine-color-secondary-8) 50%,
+    var(--mantine-color-primary-7) 100%
+  );
   background-size: cover;
   background-position: center;
-  filter: grayscale(20%);
 }
 
 .backgroundOverlay {

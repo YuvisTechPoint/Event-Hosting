@@ -1,0 +1,10 @@
+backend/
+docker/
+node_modules/
+**/node_modules/
+backend/vendor/
+.git/
+*.sqlite
+.env
+.env.*
+!.env.example

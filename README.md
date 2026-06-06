@@ -9,7 +9,7 @@
 Sell tickets online for conferences, nightlife events, concerts, club nights, workshops, and festivals.  
 Self-hosted or cloud. Your events, your brand, your data.
 
-[Try Cloud →](https://app.hi.events/auth/register?utm_source=gh-readme) · [Live Demo](https://app.hi.events/event/2/hievents-conference-2030?utm_source=gh-readme) · [Documentation](https://hi.events/docs?utm_source=gh-readme) · [Website](https://hi.events?utm_source=gh-readme)
+[Try Cloud ?](https://app.hi.events/auth/register?utm_source=gh-readme) ï¿½ [Live Demo](https://app.hi.events/event/2/hievents-conference-2030?utm_source=gh-readme) ï¿½ [Documentation](https://hi.events/docs?utm_source=gh-readme) ï¿½ [Website](https://hi.events?utm_source=gh-readme)
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://github.com/HiEventsDev/Hi.Events/blob/develop/LICENCE)
 [![GitHub Release](https://img.shields.io/github/v/release/HiEventsDev/Hi.Events?include_prereleases)](https://github.com/HiEventsDev/Hi.Events/releases)
@@ -61,7 +61,7 @@ Built for nightlife promoters, festival organizers, venues, community groups, an
 <tr>
 <td width="50%" valign="top">
 
-### 🎟️ Ticketing & Sales
+### ??? Ticketing & Sales
 
 - Flexible ticket types (free, paid, donation, tiered)
 - Hidden and locked tickets behind promo codes
@@ -74,7 +74,7 @@ Built for nightlife promoters, festival organizers, venues, community groups, an
 </td>
 <td width="50%" valign="top">
 
-### 🎨 Branding & Customization
+### ?? Branding & Customization
 
 - Beautiful, conversion-optimized checkout
 - Customizable PDF ticket designs
@@ -88,7 +88,7 @@ Built for nightlife promoters, festival organizers, venues, community groups, an
 <tr>
 <td width="50%" valign="top">
 
-### 👥 Attendee Management
+### ?? Attendee Management
 
 - Custom checkout questions
 - Advanced search, filtering, and export (CSV/XLSX)
@@ -100,7 +100,7 @@ Built for nightlife promoters, festival organizers, venues, community groups, an
 </td>
 <td width="50%" valign="top">
 
-### 📊 Analytics & Growth
+### ?? Analytics & Growth
 
 - Real-time sales dashboard
 - Affiliate and referral tracking
@@ -112,10 +112,10 @@ Built for nightlife promoters, festival organizers, venues, community groups, an
 <tr>
 <td colspan="2" valign="top">
 
-### ⚙️ Operations
+### ?? Operations
 
-Multi-user roles and permissions · Stripe Connect instant payouts · Offline payment methods · Offline event support ·
-Automatic invoicing · Event archive · Multi-language support · Full REST API
+Multi-user roles and permissions ï¿½ Stripe Connect instant payouts ï¿½ Offline payment methods ï¿½ Offline event support ï¿½
+Automatic invoicing ï¿½ Event archive ï¿½ Multi-language support ï¿½ Full REST API
 
 </td>
 </tr>
@@ -127,13 +127,13 @@ Automatic invoicing · Event archive · Multi-language support · Full REST API
 
 | Feature                          | Event Hosting | Eventbrite | Tickettailor | Dice    |
 |:---------------------------------|:----------|:-----------|:-------------|:--------|
-| Self-hosted option               | ✅         | ❌          | ❌            | ❌       |
-| Open source                      | ✅         | ❌          | ❌            | ❌       |
-| No per-ticket fees (self-hosted) | ✅         | ❌          | ❌            | ❌       |
-| Full custom branding             | ✅         | Limited    | ✅            | Limited |
-| Affiliate tracking               | ✅         | ✅          | ❌            | ❌       |
-| API access                       | ✅         | ✅          | ✅            | Limited |
-| Own your data                    | ✅         | ❌          | ❌            | ❌       |
+| Self-hosted option               | ?         | ?          | ?            | ?       |
+| Open source                      | ?         | ?          | ?            | ?       |
+| No per-ticket fees (self-hosted) | ?         | ?          | ?            | ?       |
+| Full custom branding             | ?         | Limited    | ?            | Limited |
+| Affiliate tracking               | ?         | ?          | ?            | ?       |
+| API access                       | ?         | ?          | ?            | Limited |
+| Own your data                    | ?         | ?          | ?            | ?       |
 
 <br>
 
@@ -166,7 +166,7 @@ Open `http://localhost:8123` and create your account.
 
 **Production (multi-service):** For postgres, redis, queue workers, Soketi WebSockets, and nginx, use the compose stack in [`docker/production/`](./docker/production/README.md).
 
-📖 [Full installation guide](https://hi.events/docs/getting-started?utm_source=gh-readme)
+?? [Full installation guide](https://hi.events/docs/getting-started?utm_source=gh-readme)
 
 <br>
 
@@ -174,7 +174,21 @@ Open `http://localhost:8123` and create your account.
 
 This section covers setting up Event Hosting locally without Docker.
 
-**ℹ️ For a faster and more reliable setup, we strongly recommend using the official [Docker setup](https://hi.events/docs/getting-started/quick-start).**
+### Native / Windows
+
+From the repository root:
+
+```powershell
+.\dev.cmd
+```
+
+Or `.\scripts\dev.ps1` (CSR) or `.\scripts\dev.ps1 -Ssr` (SSR). The script starts PostgreSQL via `pg_ctl` if needed, locates WinGet PHP, and reuses ports `:1234` / `:5678` if servers are already up. First-time setup: `.\scripts\start-local-windows-native.ps1`. Stop: `.\scripts\stop-dev.ps1`.
+
+Do **not** paste multiple commands on one line (`cd frontend` while already in `frontend/`, or `yarn build` after `yarn dev:ssr`). The API proxy error `ECONNREFUSED /users/me` means the Laravel backend on `:1234` is not running — use `.\dev.cmd` from the repo root instead.
+
+
+
+**?? For a faster and more reliable setup, we strongly recommend using the official [Docker setup](https://hi.events/docs/getting-started/quick-start).**
 
 ### Prerequisites
 
@@ -287,7 +301,7 @@ Visit `http://localhost:5678` to view the frontend.
 Prefer not to self-host? **[Event Hosting Cloud](https://app.hi.events/auth/register?utm_source=gh-readme)** is a fully
 managed option with zero setup, automatic updates, and managed infrastructure.
 
-[Get started →](https://app.hi.events/auth/register?utm_source=gh-readme)
+[Get started ?](https://app.hi.events/auth/register?utm_source=gh-readme)
 
 <br>
 
@@ -307,7 +321,7 @@ Open an issue with a detailed description of the proposed enhancement and its be
 
 ### Pull Requests
 
-⚠️ Please open an issue or discussion before starting any significant work.
+?? Please open an issue or discussion before starting any significant work.
 
 1. Fork the repository.
 2. Create a branch from `develop` (e.g., `feature/new-feature` or `bugfix/issue-123`).
@@ -339,7 +353,7 @@ Follow the [Getting Started with Local Development guide](https://hi.events/docs
 
 **Backend:** Wrap translatable strings in the `__()` helper. Extract with `php artisan langscanner`.
 
-**Frontend:** Use [Lingui](https://lingui.dev/) — wrap strings in `t` or `Trans`. Run:
+**Frontend:** Use [Lingui](https://lingui.dev/) ï¿½ wrap strings in `t` or `Trans`. Run:
 
 ```bash
 yarn messages:extract && yarn messages:compile
@@ -355,7 +369,7 @@ php artisan generate-domain-objects
 
 ### AI / Bot Contributors
 
-- Add 🤖 to the PR title and each commit message.
+- Add ?? to the PR title and each commit message.
 - All other guidelines above still apply.
 
 <br>
@@ -381,12 +395,13 @@ docker compose -f docker-compose.dev.yml exec backend php artisan test --testsui
 docker compose -f docker-compose.dev.yml exec backend ./vendor/bin/pint --test
 ```
 
-#### Frontend (React + Vite) — SSR Only
+#### Frontend (React + Vite) — SSR
+
+From the **repo root** (recommended on Windows: `.\scripts\dev.ps1 -Ssr`), or from `frontend/`:
 
 ```bash
-cd frontend
 yarn install
-yarn dev:ssr              # Development server
+yarn dev:ssr              # Requires backend on http://127.0.0.1:1234
 yarn build                # SSR build
 yarn messages:extract     # Extract translatable strings
 yarn messages:compile     # Compile translations
@@ -405,15 +420,15 @@ cd docker/development
 
 #### Architecture Flow
 
-- Request flow: **Action → Handler → Domain Service → Repository**
+- Request flow: **Action ? Handler ? Domain Service ? Repository**
 - Handlers can use repositories directly when a service would be overkill
-- No Eloquent in handlers or services — Eloquent belongs in repositories only
+- No Eloquent in handlers or services ï¿½ Eloquent belongs in repositories only
 - Favour composition over inheritance
 
 #### General Standards
 
 - **ALWAYS** wrap translatable strings in `__()` helper
-- Domain Objects are auto-generated via `php artisan generate-domain-objects` — never edit manually
+- Domain Objects are auto-generated via `php artisan generate-domain-objects` ï¿½ never edit manually
 - **Always** create unit tests for new features in `backend/tests/Unit/`
 - **DON'T** add comments unless absolutely necessary
 - **ALWAYS** sanitize user-provided content with `HtmlPurifierService` before storing
@@ -447,12 +462,12 @@ cd docker/development
 
 #### Testing
 
-- **DON'T** use `RefreshDatabase` — use `DatabaseTransactions` instead
+- **DON'T** use `RefreshDatabase` ï¿½ use `DatabaseTransactions` instead
 - Unit tests extend Laravel's TestCase; use Mockery for mocking
 
 ### Frontend Guidelines
 
-- This is an SSR app — ensure safe usage of `window` and `document`
+- This is an SSR app ï¿½ ensure safe usage of `window` and `document`
 - Favour existing components over creating new ones
 - **ALWAYS** add translations for new user-facing strings (Lingui `t` or `Trans`)
 - Use React Query for all API interactions
@@ -553,8 +568,8 @@ URSFSI5iNr0JSvCYNmzsDB6zSSlR/UvgRFM1SRUoG3sygmV32Onh0EzU
 
 ## Support
 
-📖 [Documentation](https://hi.events/docs?utm_source=gh-readme) · 📧 [hello@hi.events](mailto:hello@hi.events) ·
-🐛 [GitHub Issues](https://github.com/HiEventsDev/Hi.Events/issues)
+?? [Documentation](https://hi.events/docs?utm_source=gh-readme) ï¿½ ?? [hello@hi.events](mailto:hello@hi.events) ï¿½
+?? [GitHub Issues](https://github.com/HiEventsDev/Hi.Events/issues)
 
 <br>
 
@@ -574,8 +589,8 @@ available. [Learn more](https://hi.events/licensing).
 
 <div align="center">
 
-**[Website](https://hi.events)** · **[Documentation](https://hi.events/docs)** · **[Twitter/X](https://x.com/HiEventsTickets)**
+**[Website](https://hi.events)** ï¿½ **[Documentation](https://hi.events/docs)** ï¿½ **[Twitter/X](https://x.com/HiEventsTickets)**
 
-Made with ☘️ in Ireland
+Made with ?? in Ireland
 
 </div>

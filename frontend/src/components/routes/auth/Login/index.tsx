@@ -1,21 +1,25 @@
 import {Button, PasswordInput, TextInput, Collapse, UnstyledButton} from "@mantine/core";
-import {NavLink, useLocation} from "react-router";
-import {useMutation} from "@tanstack/react-query";
-import {notifications} from '@mantine/notifications';
-import {authClient} from "../../../../api/auth.client.ts";
+import {NavLink, useLocation, useNavigate} from "react-router";
 import {LoginData, LoginResponse} from "../../../../types.ts";
 import {useForm} from "@mantine/form";
-import {redirectToPreviousUrl} from "../../../../api/client.ts";
+import {navigateToPreviousUrl} from "../../../../api/client.ts";
 import classes from "./Login.module.scss";
 import {t, Trans} from "@lingui/macro";
-import {useEffect, useState} from "react";
+import {useRef, useState} from "react";
 import {ChooseAccountModal} from "../../../modals/ChooseAccountModal";
 import {useSendTicketLookupEmail} from "../../../../mutations/useSendTicketLookupEmail.ts";
 import {showError} from "../../../../utilites/notifications.tsx";
 import {IconTicket, IconChevronDown} from "@tabler/icons-react";
+import {useLogin} from "../../../../mutations/useLogin.ts";
+import {AxiosError} from "axios";
+import {notifications} from "@mantine/notifications";
+
+const LOGIN_ERROR_NOTIFICATION_ID = 'login-error';
 
 const Login = () => {
     const location = useLocation();
+    const navigate = useNavigate();
+    const loginInFlightRef = useRef(false);
     const form = useForm({
         initialValues: {
             email: '',
@@ -33,35 +37,79 @@ const Login = () => {
     });
     const [ticketLookupSuccess, setTicketLookupSuccess] = useState(false);
 
-    const {mutate: loginUser, isPending, data} = useMutation({
-        mutationFn: (userData: LoginData) => authClient.login(userData),
-
-        onSuccess: (response: LoginResponse) => {
-            if (response.token) {
-                redirectToPreviousUrl();
-                return;
-            }
-
-            if (response.accounts.length > 1) {
-                setShowChooseAccount(true);
-                return;
-            }
-        },
-
-        onError: () => {
-            notifications.show({
-                message: t`Please check your email and password and try again`,
-                color: 'red',
-                position: 'top-center',
-            });
-        }
-    });
-
+    const loginMutation = useLogin();
     const ticketLookupMutation = useSendTicketLookupEmail();
 
-    useEffect(() => {
-        form.values.account_id && loginUser(form.values);
-    }, [form.values.account_id]);
+    const handleLoginSuccess = (response: LoginResponse) => {
+        if (response.token) {
+            navigateToPreviousUrl(navigate);
+            return;
+        }
+
+        if (response.accounts.length > 1) {
+            setShowChooseAccount(true);
+        }
+    };
+
+    const handleLogin = (values: LoginData) => {
+        if (loginInFlightRef.current || loginMutation.isPending) {
+            return;
+        }
+
+        loginInFlightRef.current = true;
+
+        const payload: LoginData = {
+            email: values.email,
+            password: values.password,
+        };
+
+        if (values.account_id) {
+            payload.account_id = values.account_id;
+        }
+
+        loginMutation.mutate(payload, {
+            onSuccess: handleLoginSuccess,
+            onError: (error: unknown) => {
+                notifications.hide(LOGIN_ERROR_NOTIFICATION_ID);
+
+                const axiosError = error as AxiosError<{message?: string}>;
+                const status = axiosError.response?.status;
+
+                if (!axiosError.response) {
+                    showError(
+                        t`Unable to reach the API server. If this is a Vercel deployment, set BACKEND_URL to your Laravel API and redeploy.`,
+                        undefined,
+                        LOGIN_ERROR_NOTIFICATION_ID,
+                    );
+                    return;
+                }
+
+                if (status === 401) {
+                    showError(
+                        t`Please check your email and password and try again`,
+                        undefined,
+                        LOGIN_ERROR_NOTIFICATION_ID,
+                    );
+                    return;
+                }
+
+                if (status === 403 && axiosError.response?.data?.message) {
+                    showError(axiosError.response.data.message, undefined, LOGIN_ERROR_NOTIFICATION_ID);
+                    return;
+                }
+
+                showError(
+                    axiosError.response?.data?.message
+                        ?? t`Login failed. Please try again.`,
+                    undefined,
+                    LOGIN_ERROR_NOTIFICATION_ID,
+                );
+            },
+            onSettled: () => {
+                loginInFlightRef.current = false;
+            },
+        });
+    };
 
     const handleTicketLookup = (values: { email: string }) => {
         ticketLookupMutation.mutate(values.email, {
@@ -88,7 +136,7 @@ const Login = () => {
                 </p>
             </header>
             <div className={classes.loginCard}>
-                <form onSubmit={form.onSubmit((values) => loginUser(values))}>
+                <form onSubmit={form.onSubmit((values) => handleLogin(values))}>
                     <TextInput {...form.getInputProps('email')}
                                label={t`Email`}
                                placeholder="hello@example.com"
@@ -100,8 +148,8 @@ const Login = () => {
                                    required
                                    mt="md"
                     />
-                    <Button color="secondary.5" type="submit" fullWidth loading={isPending} disabled={isPending} mt="lg">
-                        {isPending ? t`Logging in` : t`Log in`}
+                    <Button color="secondary.5" type="submit" fullWidth loading={loginMutation.isPending} disabled={loginMutation.isPending} mt="lg">
+                        {loginMutation.isPending ? t`Logging in` : t`Log in`}
                     </Button>
                     <p>
                         <NavLink to={`/auth/forgot-password`}>
@@ -166,10 +214,14 @@ const Login = () => {
                 </Collapse>
             </div>
 
-            {(showChooseAccount && data) && <ChooseAccountModal onAccountChosen={(accountId) => {
-                form.setFieldValue('account_id', accountId as string);
+            {(showChooseAccount && loginMutation.data) && <ChooseAccountModal onAccountChosen={(accountId) => {
+                handleLogin({
+                    email: form.values.email,
+                    password: form.values.password,
+                    account_id: accountId,
+                });
             }
-            } accounts={data.accounts}/>}
+            } accounts={loginMutation.data.accounts}/>}
         </>
     )
 }

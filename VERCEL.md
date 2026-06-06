@@ -1,29 +1,69 @@
 # Deploying the frontend on Vercel
 
-This repo is a monorepo. Vercel must build the **frontend** only (Laravel backend is deployed separately).
+The Vercel deployment is **frontend only**. Login, registration, and all API features require a **separate Laravel backend** (Railway, Render, Fly.io, Docker VPS, etc.).
 
-Root `vercel.json` configures:
+## Required: connect frontend to backend
 
-- **Install:** `frontend/` dependencies
-- **Build:** CSR Vite build → `frontend/dist`
-- **SPA rewrites:** all routes → `index.html`
+### 1. Deploy the Laravel API
 
-## Required environment variables (Vercel project settings)
+Deploy `backend/` somewhere public, e.g. `https://your-api.railway.app`.
 
-Set these for **Production** and **Preview**:
+Run migrations and create a user:
 
-| Variable | Example |
-|----------|---------|
-| `VITE_API_URL_CLIENT` | `https://your-api.example.com` |
-| `VITE_API_URL_SERVER` | `https://your-api.example.com` |
-| `VITE_FRONTEND_URL` | `https://your-app.vercel.app` |
-| `VITE_APP_NAME` | `Event Hosting` |
+```bash
+php artisan migrate --force
+php artisan tinker  # create account via register API or seeders
+```
 
-Optional: `VITE_STRIPE_PUBLISHABLE_KEY`, `VITE_PUSHER_*` for payments and realtime.
+### 2. Set Vercel environment variables
 
-## Vercel project settings
+In **Vercel → Project → Settings → Environment Variables** (Production + Preview):
 
-1. **Production Branch:** `main` (not Dependabot branches)
-2. **Root Directory:** leave empty — root `vercel.json` handles the monorepo paths
+| Variable | Value | Required |
+|----------|-------|----------|
+| `BACKEND_URL` | `https://your-api.railway.app` | **Yes** — no trailing slash |
+| `VITE_APP_NAME` | `Event Hosting` | Recommended |
 
-After pushing, trigger **Redeploy** on the latest `main` deployment.
+`BACKEND_URL` is used at build time to:
+
+- Proxy `/api/*` on your Vercel domain → Laravel API (same as local Vite proxy)
+- Set `VITE_API_URL_CLIENT=/api` so auth calls hit the proxy
+
+### 3. Redeploy
+
+Push to `main` or click **Redeploy** after setting env vars. The build runs `scripts/prepare-vercel-build.mjs` automatically.
+
+### 4. Backend CORS (only if NOT using `/api` proxy)
+
+If you set `VITE_API_URL_CLIENT` to the full backend URL instead of `/api`, add your Vercel URL to backend env:
+
+```
+CORS_ALLOWED_ORIGINS=https://event-hosting-snowy.vercel.app,https://your-custom-domain.com
+```
+
+When using the `/api` proxy (default with `BACKEND_URL`), CORS is not needed for browser requests.
+
+## Why login showed "check your email and password"
+
+Without `BACKEND_URL`, login POSTs went to `https://your-app.vercel.app/api/auth/login`, which returned the SPA `index.html` instead of JSON from Laravel — so auth always failed.
+
+## Local development
+
+Use the helper script (do not paste raw `php` commands unless PHP is on PATH):
+
+```powershell
+.\scripts\dev.ps1
+```
+
+Or:
+
+```powershell
+cd backend
+.\artisan.ps1 serve --host=127.0.0.1 --port=1234
+cd ..\frontend
+yarn dev:csr
+```
+
+## Production branch
+
+Set **Production Branch** to `main` (not Dependabot preview branches).

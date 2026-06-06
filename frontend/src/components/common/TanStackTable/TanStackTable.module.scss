@@ -17,7 +17,7 @@
   white-space: nowrap;
 
   th {
-    background-color: #f2f0f5;
+    background-color: var(--mantine-color-default-hover);
     color: var(--hi-secondary-text) !important;
     padding: 20px !important;
   }
@@ -98,5 +98,5 @@
 
 .tableHead .stickyLeft,
 .tableHead .stickyRight {
-  background-color: #f2f0f5;
+  background-color: var(--mantine-color-default-hover);
 }

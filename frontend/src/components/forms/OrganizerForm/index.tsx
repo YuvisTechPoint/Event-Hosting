@@ -2,7 +2,7 @@ import {useCreateOrganizer} from "../../../mutations/useCreateOrganizer.ts";
 import {useGetAccount} from "../../../queries/useGetAccount.ts";
 import {useForm, UseFormReturnType} from "@mantine/form";
 import {Organizer} from "../../../types.ts";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {LoadingContainer} from "../../common/LoadingContainer";
 import {t} from "@lingui/macro";
 import {Button, Select, Stack, TextInput} from "@mantine/core";
@@ -13,7 +13,7 @@ import {useGetMe} from "../../../queries/useGetMe.ts";
 import {IconBuilding} from "@tabler/icons-react";
 import classes from "../../routes/welcome/Welcome.module.scss";
 import {trackEvent, AnalyticsEvents} from "../../../utilites/analytics.ts";
-import {getUserCurrency} from "../../../utilites/currency.ts";
+import {DEFAULT_CURRENCY} from "../../../utilites/currency.ts";
 import {resolveTimezone} from "../../../utilites/timezone.ts";
 
 interface OrganizerFormProps {
@@ -21,7 +21,15 @@ interface OrganizerFormProps {
     onCancel?: () => void;
 }
 
+const currencyOptions = Object.entries(currencies).map(([key, value]) => ({
+    value: value,
+    label: `${key} (${value})`,
+}));
+
 export const OrganizerForm = ({form}: { form: UseFormReturnType<Partial<Organizer>> }) => {
+    const [currencySearch, setCurrencySearch] = useState('');
+    const currencyInputProps = form.getInputProps('currency');
+
     return (
         <Stack gap={24}>
             <TextInput
@@ -42,13 +50,22 @@ export const OrganizerForm = ({form}: { form: UseFormReturnType<Partial<Organize
 
             <div className={classes.dateTimeGrid}>
                 <Select
-                    {...form.getInputProps('currency')}
+                    {...currencyInputProps}
                     searchable
                     required
-                    data={Object.entries(currencies).map(([key, value]) => ({
-                        value: value,
-                        label: `${key} (${value})`,
-                    }))}
+                    data={currencyOptions}
+                    searchValue={currencySearch}
+                    onSearchChange={(query) => {
+                        setCurrencySearch(query);
+                        if (query && currencyInputProps.value) {
+                            form.setFieldValue('currency', '');
+                        }
+                    }}
+                    onChange={(value) => {
+                        currencyInputProps.onChange(value);
+                        setCurrencySearch('');
+                    }}
+                    onDropdownClose={() => setCurrencySearch('')}
                     label={t`Currency`}
                     placeholder={t`Select currency`}
                     size="lg"
@@ -75,7 +92,7 @@ export const OrganizerCreateForm = ({onSuccess, onCancel}: OrganizerFormProps) =
         initialValues: {
             name: '',
             email: '',
-            currency: getUserCurrency(),
+            currency: DEFAULT_CURRENCY,
             timezone: resolveTimezone(),
         }
     });
@@ -104,7 +121,7 @@ export const OrganizerCreateForm = ({onSuccess, onCancel}: OrganizerFormProps) =
         form.setValues({
             name: account.name ?? '',
             email: me.email ?? account.email ?? '',
-            currency: account.currency_code ?? getUserCurrency(),
+            currency: DEFAULT_CURRENCY,
             timezone: resolveTimezone(me.timezone ?? account.timezone),
         });
     }, [accountFetched, meFetched, account, me]);

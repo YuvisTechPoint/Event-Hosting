@@ -628,7 +628,7 @@ const SelectProducts = (props: SelectProductsProps) => {
                 )}
 
                 {(showPromoCodeInput && !form.values.promo_code) && (
-                    <Group className={'hi-promo-code-input-wrapper'} wrap={'nowrap'} gap={'20px'}>
+                    <Group className={'hi-promo-code-input-wrapper'} wrap={'wrap'} gap={'12px'}>
                         {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
                         {/*@ts-ignore*/}
                         <TextInput autoFocus classNames={{input: 'hi-promo-code-input'}} onKeyDown={(event) => {

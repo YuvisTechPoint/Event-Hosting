@@ -1,10 +1,12 @@
 import { Navigate, RouteObject } from "react-router";
 import ErrorPage from "./error-page.tsx";
 import { useEffect, useState } from "react";
+import {Center, Loader} from "@mantine/core";
 import { useGetMe } from "./queries/useGetMe.ts";
 import { publicEventRouteLoader } from "./routeLoaders/publicEventRouteLoader.ts";
 import { publicOrganizerRouteLoader } from "./routeLoaders/publicOrganizerRouteLoader.ts";
 import { organizerPreviewRouteLoader } from "./routeLoaders/organizerPreviewRouteLoader.ts";
+import {RouterShell} from "./RouterShell.tsx";
 
 const Root = () => {
     const [redirectPath, setRedirectPath] = useState<string | null>(null);
@@ -21,6 +23,12 @@ const Root = () => {
     if (redirectPath) {
         return <Navigate to={redirectPath} replace={true} />;
     }
+
+    return (
+        <Center h="100vh">
+            <Loader size="lg"/>
+        </Center>
+    );
 };
 
 export const router: RouteObject[] = [
@@ -654,3 +662,9 @@ export const router: RouteObject[] = [
     }
 ];
 
+export const appRouter: RouteObject[] = [
+    {
+        element: <RouterShell/>,
+        children: router,
+    },
+];

@@ -172,6 +172,7 @@ export interface StripeConnectAccountsResponse {
 export interface LoginData {
     email: string;
     password: string;
+    account_id?: IdParam;
 }
 
 export interface Image {

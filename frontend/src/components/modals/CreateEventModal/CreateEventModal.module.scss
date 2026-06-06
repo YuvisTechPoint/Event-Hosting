@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  z-index: 10;
+  z-index: var(--hi-z-modal);
   animation: fadeIn 0.3s ease-out;
   
   @include mixins.respond-below(md) {

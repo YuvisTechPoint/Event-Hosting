@@ -1,4 +1,4 @@
-# Start Event Hosting locally on Windows WITHOUT Docker.
+﻿# Start Event Hosting locally on Windows WITHOUT Docker.
 # Requires: PostgreSQL 16+, PHP 8.3+, Composer, Node.js, Yarn
 #
 # Usage:
@@ -8,61 +8,29 @@
 
 param(
     [switch]$SetupOnly,
-    [switch]$SkipSetup
+    [switch]$SkipSetup,
+    [switch]$Ssr
 )
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $backendDir = Join-Path $root "backend"
 $frontendDir = Join-Path $root "frontend"
+$lib = Join-Path $root "scripts\windows-dev-lib.ps1"
 
-function Find-Php {
-    $candidates = @(
-        (Get-Command php -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source),
-        "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\PHP.PHP.8.3_Microsoft.Winget.Source_8wekyb3d8bbwe\php.exe",
-        "$env:LOCALAPPDATA\Programs\PHP\php.exe",
-        "C:\php\php.exe",
-        "C:\tools\php83\php.exe",
-        "C:\laragon\bin\php\php-8.3.12-Win32-vs16-x64\php.exe"
-    ) | Where-Object { $_ -and (Test-Path $_) }
-
-    foreach ($laragon in (Get-ChildItem "C:\laragon\bin\php" -Filter php.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1)) {
-        $candidates += $laragon.FullName
-    }
-
-    return $candidates | Select-Object -First 1
-}
-
-function Test-Postgres {
-    try {
-        $pg = Get-Command psql -ErrorAction SilentlyContinue
-        if ($pg) {
-            & psql -h 127.0.0.1 -p 5432 -U postgres -c "SELECT 1" 2>$null | Out-Null
-            return $LASTEXITCODE -eq 0
-        }
-    } catch {}
-
-    try {
-        $tcp = New-Object System.Net.Sockets.TcpClient
-        $tcp.Connect("127.0.0.1", 5432)
-        $tcp.Close()
-        return $true
-    } catch {
-        return $false
-    }
-}
+. $lib
 
 $php = Find-Php
 if (-not $php) {
     Write-Host "PHP not found. Install PHP 8.3+ and add it to PATH, or install via Laragon." -ForegroundColor Red
     Write-Host "Required extensions: gd, pdo_pgsql, sodium, curl, intl, mbstring, xml, zip, bcmath" -ForegroundColor Yellow
+    Write-Host "Quick install: winget install PHP.PHP.8.3" -ForegroundColor Yellow
     exit 1
 }
 
 Write-Host "Using PHP: $php" -ForegroundColor Cyan
 
-if (-not (Test-Postgres)) {
-    Write-Host "PostgreSQL is not reachable on 127.0.0.1:5432. Start PostgreSQL before continuing." -ForegroundColor Red
+if (-not (Start-PostgresIfNeeded)) {
     exit 1
 }
 
@@ -72,7 +40,7 @@ if (-not $SkipSetup) {
 
     if (-not (Test-Path ".env")) {
         Copy-Item ".env.example" ".env"
-        Write-Host "Created backend/.env from .env.example — update DB credentials if needed." -ForegroundColor Yellow
+        Write-Host "Created backend/.env from .env.example - update DB credentials if needed." -ForegroundColor Yellow
     }
 
     if (-not (Test-Path "vendor\autoload.php")) {
@@ -120,19 +88,8 @@ if ($SetupOnly) {
 
 Write-Host ""
 Write-Host "Starting Event Hosting (native Windows)..." -ForegroundColor Green
-Write-Host "  Backend:  http://localhost:1234  (health: /health)" -ForegroundColor White
-Write-Host "  Frontend: http://localhost:5678  (API proxy: /api -> :1234)" -ForegroundColor White
-Write-Host ""
 Write-Host "Queue note: QUEUE_CONNECTION=sync runs jobs inline. For async email/webhooks," -ForegroundColor Yellow
 Write-Host "  set QUEUE_CONNECTION=redis, run Redis, and start: php artisan queue:work --queue=default,webhook-queue" -ForegroundColor Yellow
 Write-Host ""
-Write-Host "Press Ctrl+C in each window to stop servers." -ForegroundColor DarkGray
 
-$backendCmd = "Set-Location '$backendDir'; & '$php' artisan serve --host=127.0.0.1 --port=1234"
-$frontendCmd = "Set-Location '$frontendDir'; yarn dev:csr"
-
-Start-Process powershell -ArgumentList "-NoExit", "-Command", $backendCmd
-Start-Sleep -Seconds 2
-Start-Process powershell -ArgumentList "-NoExit", "-Command", $frontendCmd
-
-Write-Host "Servers launched in separate windows." -ForegroundColor Green
+Ensure-DevServers -BackendDir $backendDir -FrontendDir $frontendDir -PhpExe $php -Ssr:$Ssr

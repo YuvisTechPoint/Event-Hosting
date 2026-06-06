@@ -25,6 +25,11 @@ $transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   filter: blur(24px) saturate(1.3);
   z-index: -1;
   transform: scale(1.08);
+
+  @include mixins.respond-below(md) {
+    transform: scale(1.02);
+    filter: blur(16px) saturate(1.2);
+  }
   left: 0;
   right: 0;
   top: 0;
@@ -67,6 +72,7 @@ $transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 // Main page wrapper
 .pageWrapper {
   min-height: 100vh;
+  overflow-x: hidden;
   --background-overlay: #{rgba(white, 0.5)};
 
   &[data-mode="dark"] {

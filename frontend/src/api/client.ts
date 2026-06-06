@@ -1,4 +1,5 @@
 import axios from "axios";
+import type {NavigateFunction} from "react-router";
 import {isSsr} from "../utilites/helpers.ts";
 import {getConfig} from "../utilites/config.ts";
 import {setAuthToken} from "../utilites/apiClient.ts";
@@ -46,7 +47,7 @@ api.interceptors.response.use(
         return response;
     },
     (error) => {
-        const { status } = error.response;
+        const status = error.response?.status;
         const currentPath = window?.location.pathname;
         const isAllowedUnauthenticatedPath = ALLOWED_UNAUTHENTICATED_PATHS.some(path => currentPath.includes(path));
         const isManageEventPath = currentPath.startsWith('/manage/event/');
@@ -66,10 +67,30 @@ api.interceptors.response.use(
 
 axios.defaults.withCredentials = true;
 
-export const redirectToPreviousUrl = () => {
+export const consumePreviousUrl = (): string => {
     const previousUrl = window?.localStorage?.getItem(PREVIOUS_URL_KEY) || '/manage/events';
     window?.localStorage?.removeItem(PREVIOUS_URL_KEY);
-    if (typeof window !== "undefined") {
-        window.location.href = previousUrl;
+
+    try {
+        const url = new URL(previousUrl, window.location.origin);
+        return url.pathname + url.search;
+    } catch {
+        return previousUrl.startsWith('/') ? previousUrl : '/manage/events';
     }
+};
+
+export const navigateToPreviousUrl = (navigate: NavigateFunction) => {
+    if (typeof window === "undefined") {
+        return;
+    }
+
+    navigate(consumePreviousUrl(), {replace: true});
+};
+
+export const redirectToPreviousUrl = () => {
+    if (typeof window === "undefined") {
+        return;
+    }
+
+    window.location.href = consumePreviousUrl();
 };

@@ -22,6 +22,7 @@ $transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
 .paymentMethodTabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -29,6 +30,8 @@ $transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
   padding: 10px 16px;
   background: var(--checkout-surface, #FFFFFF);
   border: 1px solid var(--checkout-border, #E5E7EB);
@@ -38,6 +41,11 @@ $transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   font-weight: 500;
   color: var(--checkout-text-secondary, #6B7280);
   transition: all $transition-fast;
+
+  @media (max-width: 768px) {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
 
   &:hover {
     border-color: var(--checkout-accent-muted, #D1D5DB);

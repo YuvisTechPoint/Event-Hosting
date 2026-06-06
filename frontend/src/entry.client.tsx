@@ -1,7 +1,7 @@
-import {hydrateRoot} from "react-dom/client";
+import {createRoot, hydrateRoot} from "react-dom/client";
 import {createBrowserRouter, matchRoutes, RouterProvider} from "react-router-dom";
 
-import {router} from "./router";
+import {appRouter} from "./router";
 import {App} from "./App";
 import {queryClient} from "./utilites/queryClient";
 import {dynamicActivateLocale, getClientLocale, getSupportedLocale,} from "./locales.ts";
@@ -14,13 +14,24 @@ declare global {
 
 const dehydratedState = window.__REHYDRATED_STATE__;
 
+function hasServerRenderedMarkup(container: HTMLElement): boolean {
+    for (const node of container.childNodes) {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+            return true;
+        }
+        if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 async function initClientApp() {
     const rawLocale = getClientLocale();
     const locale = getSupportedLocale(rawLocale);
     await dynamicActivateLocale(locale);
 
-    // Resolve lazy-loaded routes before hydration
-    const matches = matchRoutes(router, window.location)?.filter((m) => m.route.lazy);
+    const matches = matchRoutes(appRouter, window.location)?.filter((m) => m.route.lazy);
     if (matches && matches.length > 0) {
         await Promise.all(
             matches.map(async (m) => {
@@ -30,7 +41,7 @@ async function initClientApp() {
         );
     }
 
-    const browserRouter = createBrowserRouter(router);
+    const browserRouter = createBrowserRouter(appRouter);
 
     if ('serviceWorker' in navigator && import.meta.env.PROD) {
         navigator.serviceWorker.register('/sw.js').catch(() => {});
@@ -44,12 +55,18 @@ async function initClientApp() {
         load().catch(() => {});
     });
 
-    hydrateRoot(
-        document.getElementById("app") as HTMLElement,
+    const appElement = document.getElementById("app") as HTMLElement;
+    const appTree = (
         <App queryClient={queryClient} locale={rawLocale} dehydratedState={dehydratedState}>
             <RouterProvider router={browserRouter}/>
         </App>
     );
+
+    if (hasServerRenderedMarkup(appElement)) {
+        hydrateRoot(appElement, appTree);
+    } else {
+        createRoot(appElement).render(appTree);
+    }
 }
 
 initClientApp();

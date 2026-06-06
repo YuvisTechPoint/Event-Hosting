@@ -1,9 +1,32 @@
-import {defineConfig} from "vite";
+import {defineConfig, loadEnv, type Plugin} from "vite";
 import {lingui} from "@lingui/vite-plugin";
 import react from "@vitejs/plugin-react";
 import {copy} from "vite-plugin-copy";
 import {existsSync, readFileSync} from "fs";
 import {resolve} from "path";
+
+function csrIndexHtmlPlugin(mode: string): Plugin {
+    return {
+        name: "csr-index-html",
+        apply: "build",
+        transformIndexHtml(html) {
+            const env = loadEnv(mode, __dirname, "");
+            const viteEnv: Record<string, string> = {};
+            for (const [key, value] of Object.entries(env)) {
+                if (key.startsWith("VITE_") && value) {
+                    viteEnv[key] = value;
+                }
+            }
+
+            const envScript = `<script>window.hievents=${JSON.stringify(viteEnv)};</script>`;
+
+            return html
+                .replace("<!--environment-variables-->", envScript)
+                .replace('<div id="app"><!--app-html--></div>', '<div id="app"></div>')
+                .replace("<!--dehydrated-state-->", "");
+        },
+    };
+}
 
 function getVersion(): string {
     const candidates = [
@@ -19,7 +42,7 @@ function getVersion(): string {
     return "unknown";
 }
 
-export default defineConfig(({isSsrBuild}) => ({
+export default defineConfig(({isSsrBuild, mode}) => ({
     optimizeDeps: {
         include: ["react-router"]
     },
@@ -54,6 +77,7 @@ export default defineConfig(({isSsrBuild}) => ({
         },
     },
     plugins: [
+        ...(isSsrBuild ? [] : [csrIndexHtmlPlugin(mode)]),
         react({
             babel: {
                 plugins: ["macros"],

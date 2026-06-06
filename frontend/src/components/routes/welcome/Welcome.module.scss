@@ -1,3 +1,6 @@
+@use "../../../styles/mixins.scss";
+@use "../../../styles/form-input-fixes" as formFixes;
+
 .welcomeContainer {
   :global {
     .mantine-InputWrapper-root {
@@ -22,7 +25,7 @@
 .welcomeContent {
   width: 100%;
   max-width: 850px;
-  min-width: 550px;
+  width: 100%;
   margin: 0 auto;
 
   @media (max-width: 768px) {
@@ -163,6 +166,7 @@
 .stepContent {
   max-width: 720px;
   margin: 0 auto;
+  @include formFixes.form-input-fixes;
 
   @media (max-width: 768px) {
     max-width: 100%;
@@ -175,15 +179,15 @@
     }
   }
 
-  // Clean, minimal form inputs (exclude PinInput)
+  // Clean, minimal form inputs (exclude PinInput).
+  // Do not use display:flex on native <input> elements — it causes browser
+  // autofill/contact buttons to tile repeatedly inside email fields.
   :global(.mantine-DateTimePicker-input),
   :global(.mantine-TextInput-input),
   :global(.mantine-Select-input) {
     min-height: 56px !important;
     height: 56px !important;
     box-sizing: border-box;
-    display: flex;
-    align-items: center;
     padding: 0 16px !important;
     border: 1px solid var(--hi-color-gray-2) !important;
     border-radius: 8px !important;
@@ -205,6 +209,19 @@
       min-height: 48px !important;
       height: 48px !important;
       font-size: 16px !important; // Prevent zoom on iOS
+    }
+  }
+
+  :global(.mantine-TextInput-input[type='email']) {
+    &::-webkit-contacts-auto-fill-button,
+    &::-webkit-credentials-auto-fill-button {
+      visibility: hidden;
+      display: none !important;
+      pointer-events: none;
+      position: absolute;
+      width: 0;
+      height: 0;
+      margin: 0;
     }
   }
 

@@ -10,6 +10,7 @@ import {ShareComponent} from "../../common/ShareIcon";
 import {AddToEventCalendarButton} from "../../common/AddEventToCalendarButton";
 import {ProgressStepper} from "../../common/ProgressStepper";
 import {useMediaQuery} from "@mantine/hooks";
+import {MOBILE_MEDIA_QUERY} from "../../../utilites/breakpoints.ts";
 import React, {useEffect, useState} from "react";
 import {Invoice} from "../../../types.ts";
 import {orderClientPublic} from "../../../api/order.client.ts";
@@ -37,7 +38,7 @@ const Checkout = () => {
     const orderIsCompleted = order?.status === 'COMPLETED';
     const orderIsReserved = order?.status === 'RESERVED';
     const orderIsAwaitingOfflinePayment = order?.status === 'AWAITING_OFFLINE_PAYMENT';
-    const isMobile = useMediaQuery('(max-width: 768px)');
+    const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY);
     const [isExpired, setIsExpired] = useState(false);
     const orderHasAttendees = order?.attendees && order.attendees.length > 0;
     const [showAbandonDialog, setShowAbandonDialog] = useState(false);
@@ -195,7 +196,7 @@ const Checkout = () => {
                     <header className={classes.header}>
                         {(event) && (
                             <div className={classes.actionBar}>
-                                <Group justify="space-between" wrap="nowrap">
+                                <Group justify="space-between" wrap={isMobile ? 'wrap' : 'nowrap'} gap={isMobile ? 'xs' : 'md'}>
                                     <Button
                                         title={t`Back to event page`}
                                         variant="subtle"

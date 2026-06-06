@@ -1,4 +1,4 @@
-export const formatCurrency = (value: number | string, currency = 'USD') => {
+export const formatCurrency = (value: number | string, currency = 'INR') => {
     const locale = typeof window !== 'undefined' ? navigator.language : 'en-US';
     const formatter = new Intl.NumberFormat(locale, {
         style: 'currency',
@@ -91,6 +91,8 @@ type CurrencyCode =
     | 'LBP' | 'IQD' | 'YER' | 'IRR' | 'BYN' | 'KZT' | 'UAH' | 'PLN' | 'CZK' | 'HUF'
     | 'RON' | 'BGN' | 'RSD' | 'AZN' | 'GEL' | 'AMD' | 'KGS' | 'TJS' | 'TMT' | 'UZS'
     | 'ETB' | 'RWF' | 'XOF';
+
+export const DEFAULT_CURRENCY: CurrencyCode = 'INR';
 
 type LocaleCurrencyMap = {
     [key: string]: CurrencyCode;
@@ -272,7 +274,7 @@ const euroZoneCountries = [
 ] as const;
 
 export const getUserCurrency = (): CurrencyCode => {
-    if (typeof window === 'undefined') return 'USD';
+    if (typeof window === 'undefined') return DEFAULT_CURRENCY;
 
     try {
         const userLocales = [
@@ -305,10 +307,9 @@ export const getUserCurrency = (): CurrencyCode => {
             return 'EUR';
         }
 
-        // Default to USD if no match found
-        return 'USD';
+        // Default to INR if no locale match found
+        return DEFAULT_CURRENCY;
     } catch (error) {
-        // Fallback to USD if anything goes wrong
-        return 'USD';
+        return DEFAULT_CURRENCY;
     }
 };
