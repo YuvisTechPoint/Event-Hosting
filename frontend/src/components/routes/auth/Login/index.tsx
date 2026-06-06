@@ -13,6 +13,8 @@ import {IconTicket, IconChevronDown} from "@tabler/icons-react";
 import {useLogin} from "../../../../mutations/useLogin.ts";
 import {AxiosError} from "axios";
 import {notifications} from "@mantine/notifications";
+import {getApiErrorMessage} from "../../../../utilites/apiErrorMessage.ts";
+import {AuthApiStatusBanner} from "../../../common/AuthApiStatusBanner";
 
 const LOGIN_ERROR_NOTIFICATION_ID = 'login-error';
 
@@ -75,32 +77,17 @@ const Login = () => {
                 const axiosError = error as AxiosError<{message?: string}>;
                 const status = axiosError.response?.status;
 
-                if (!axiosError.response) {
-                    showError(
-                        t`Unable to reach the API server. If this is a Vercel deployment, set BACKEND_URL to your Laravel API and redeploy.`,
-                        undefined,
-                        LOGIN_ERROR_NOTIFICATION_ID,
-                    );
-                    return;
-                }
-
-                if (status === 401) {
-                    showError(
-                        t`Please check your email and password and try again`,
-                        undefined,
-                        LOGIN_ERROR_NOTIFICATION_ID,
-                    );
-                    return;
-                }
-
                 if (status === 403 && axiosError.response?.data?.message) {
-                    showError(axiosError.response.data.message, undefined, LOGIN_ERROR_NOTIFICATION_ID);
+                    showError(
+                        getApiErrorMessage(error, String(axiosError.response.data.message)),
+                        undefined,
+                        LOGIN_ERROR_NOTIFICATION_ID,
+                    );
                     return;
                 }
 
                 showError(
-                    axiosError.response?.data?.message
-                        ?? t`Login failed. Please try again.`,
+                    getApiErrorMessage(error, 'Login failed. Please try again.'),
                     undefined,
                     LOGIN_ERROR_NOTIFICATION_ID,
                 );
@@ -124,6 +111,7 @@ const Login = () => {
 
     return (
         <>
+            <AuthApiStatusBanner/>
             <header className={classes.header}>
                 <h2>{t`Welcome back`}</h2>
                 <p>
